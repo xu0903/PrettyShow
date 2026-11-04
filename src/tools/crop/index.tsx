@@ -35,9 +35,9 @@ const ASPECTS: { id: AspectId; label: string; hint?: string }[] = [
 
 export const cropTool = defineTool<CropParams>({
   id: 'crop',
-  label: '裁切',
+  label: '編輯',
   icon: <IconCrop />,
-  tabOrder: 30,
+  placement: { beautify: 30 },
   defaultParams: DEFAULT_CROP,
   isIdentity: isIdentityCrop,
   steps: (p) => [{ order: ORDER.geometry, pass: cropPass(p) }],

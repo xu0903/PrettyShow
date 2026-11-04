@@ -9,6 +9,9 @@ import type { ComponentType, ReactNode } from 'react'
 import type { RenderPass } from '../gl/pass.ts'
 import type { LoadedPhoto } from '../image/load.ts'
 
+/** 兩個編輯器：圖片美化（調色、濾鏡、裁切…）和人像美容（美膚、臉型、美妝…） */
+export type EditorMode = 'beautify' | 'portrait'
+
 /** 產生 shader 步驟時的環境資訊 */
 export interface PassContext {
   /**
@@ -58,8 +61,11 @@ export interface EditTool<P> {
   id: string
   label: string
   icon: ReactNode
-  /** 在工具列上的排列順序 */
-  tabOrder: number
+  /**
+   * 出現在哪個編輯器的工具列、排在第幾個（數字小的在左邊）。
+   * 編輯結果兩邊共用，只是工具放的位置不同。
+   */
+  placement: Partial<Record<EditorMode, number>>
   defaultParams: P
   /** 參數是預設值時，整個工具會被略過 */
   isIdentity: (params: P) => boolean

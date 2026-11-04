@@ -1,6 +1,6 @@
 // 工具註冊表：工具模組在 src/tools/index.ts 註冊自己，核心只透過這裡取得工具清單
 
-import type { EditTool } from './tool.ts'
+import type { EditorMode, EditTool } from './tool.ts'
 
 /** 型別抹除後的工具（registry 裡的工具 params 型別各不相同） */
 export type AnyTool = EditTool<unknown>
@@ -16,7 +16,14 @@ export function getTool(id: string): AnyTool | undefined {
   return tools.get(id)
 }
 
-/** 依工具列順序排好的清單 */
+/** 所有工具（渲染管線用；順序由每個步驟的 order 決定，和這裡無關） */
 export function getTools(): AnyTool[] {
-  return [...tools.values()].sort((a, b) => a.tabOrder - b.tabOrder)
+  return [...tools.values()]
+}
+
+/** 某個編輯器工具列上的工具，依位置排好 */
+export function getToolsFor(mode: EditorMode): AnyTool[] {
+  return getTools()
+    .filter((t) => t.placement[mode] !== undefined)
+    .sort((a, b) => a.placement[mode]! - b.placement[mode]!)
 }

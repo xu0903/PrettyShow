@@ -1,16 +1,17 @@
 /* ---- 設計變數 ---- */
 :root {
-  --bg: #0e0e11;
-  --surface: #18181d;
-  --surface-2: #232329;
-  --line: #2e2e36;
+  --bg: #0b0b0d;
+  --surface: #141417;
+  --surface-2: #222227;
+  --line: #2c2c33;
   --text: #f2f2f5;
   --text-dim: #9a9aa6;
-  --accent: #ff5f8f;
-  --accent-2: #8a5cff;
+  /* 美圖風格的紅色 */
+  --accent: #ff2f55;
+  --accent-2: #ff6b86;
 
   --topbar-h: 48px;
-  --toolbar-h: 56px;
+  --toolbar-h: 66px;
 
   /* safe-area：瀏海、動態島、底部橫條 */
   --sat: env(safe-area-inset-top, 0px);

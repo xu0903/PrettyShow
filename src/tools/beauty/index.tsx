@@ -26,9 +26,9 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 export const beautyTool = defineTool<BeautyParams>({
   id: 'beauty',
-  label: '美顏',
+  label: '美膚',
   icon: <IconFace />,
-  tabOrder: 15,
+  placement: { portrait: 30 },
   defaultParams: { smooth: 0, whiten: 0 },
   isIdentity: (p) => p.smooth === 0 && p.whiten === 0,
 

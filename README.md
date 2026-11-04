@@ -34,3 +34,9 @@ push 到 `main` 後，GitHub Actions 會自動建置並部署到 GitHub Pages：
 - wasm 由 Vite 從 `node_modules` 打包進 `dist/assets`；模型放在 `public/models/face_landmarker.task`（Apache-2.0，來源：Google MediaPipe）。
 - 兩者都不預先快取，第一次打開美顏時才下載，之後由 service worker 的 `face-models` 快取提供。
 - 升級 MediaPipe 時鎖定確切版本（`--save-exact`）。
+
+## 新增工具
+
+1. 在 `src/tools/<名稱>/` 寫好工具模組（`defineTool`），用 `placement` 指定放在哪個編輯器（`beautify` 圖片美化、`portrait` 人像美容）的第幾個位置。
+2. 在 `src/tools/index.ts` 註冊。
+3. 如果 `src/tools/upcoming.tsx` 裡有它的「即將推出」佔位，刪掉那一項。

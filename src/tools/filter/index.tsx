@@ -26,7 +26,7 @@ export const filterTool = defineTool<FilterParams>({
   id: 'filter',
   label: '濾鏡',
   icon: <IconFilter />,
-  tabOrder: 20,
+  placement: { beautify: 50 },
   defaultParams: { lut: null, intensity: DEFAULT_INTENSITY },
   isIdentity: (p) => p.lut === null || p.intensity === 0,
 

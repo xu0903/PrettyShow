@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { APP_ICONS, appIconUrl, getAppIcon, setAppIcon } from '../core/appIcon.ts'
-import { APP_VERSION, BUILD_TIME } from '../version.ts'
-import { isStandalone } from './viewportFix.ts'
+import { APP_ICONS, appIconUrl, getAppIcon, setAppIcon } from '../../core/appIcon.ts'
+import { MAX_DRAFTS } from '../../core/drafts.ts'
+import { useEditor } from '../../core/store.ts'
+import { APP_VERSION, BUILD_TIME } from '../../version.ts'
+import { isStandalone } from '../viewportFix.ts'
 
-// 設定面板：App 圖示、版本資訊。由底部升起，方便單手操作
-export function SettingsSheet({ onClose }: { onClose: () => void }) {
+// 「我」：App 圖示、圖庫用量、版本資訊
+export function MeTab() {
   const [icon, setIcon] = useState(getAppIcon)
+  const count = useEditor((s) => s.gallery.length)
   const standalone = isStandalone()
 
   const choose = (id: string) => {
@@ -14,9 +17,12 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <section className="sheet" role="dialog" aria-label="設定" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-handle" />
+    <div className="home-scroll">
+      <header className="page-head">
+        <h1>我</h1>
+      </header>
+
+      <section className="me-card">
         <h2 className="sheet-title">App 圖示</h2>
         <div className="icon-grid">
           {APP_ICONS.map((i) => (
@@ -33,16 +39,21 @@ export function SettingsSheet({ onClose }: { onClose: () => void }) {
           </p>
           {standalone && <p>你現在是從主畫面打開的，請改用 Safari 打開網站再選。</p>}
         </div>
+      </section>
 
+      <section className="me-card">
+        <h2 className="sheet-title">圖庫</h2>
+        <p className="me-line">
+          已保存 {count} 張（最多 {MAX_DRAFTS} 張，超過時自動刪掉最舊的）
+        </p>
+      </section>
+
+      <section className="me-card">
         <h2 className="sheet-title">版本</h2>
         <p className="sheet-version">
           v{APP_VERSION}
           <span>建置於 {new Date(BUILD_TIME).toLocaleString('zh-TW', { hour12: false })}</span>
         </p>
-
-        <button className="sheet-close" onClick={onClose}>
-          完成
-        </button>
       </section>
     </div>
   )

@@ -8,7 +8,7 @@ function fakeTool(id: string, orders: number[]): AnyTool {
     id,
     label: id,
     icon: null,
-    tabOrder: 0,
+    placement: {},
     defaultParams: 0,
     isIdentity: (p) => p === 0,
     steps: (p) => orders.map((order) => ({ order, pass: { id: `${id}@${order}:${String(p)}`, fragment: '' } })),

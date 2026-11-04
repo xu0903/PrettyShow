@@ -41,9 +41,9 @@ const DEFAULTS: AdjustParams = {
 
 export const adjustTool = defineTool<AdjustParams>({
   id: 'adjust',
-  label: '調整',
+  label: '調色',
   icon: <IconSliders />,
-  tabOrder: 10,
+  placement: { beautify: 40 },
   defaultParams: DEFAULTS,
   isIdentity: (p) => ITEMS.every(({ key }) => p[key] === 0),
 
