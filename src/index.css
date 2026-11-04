@@ -14,7 +14,8 @@
 
   /* safe-area：瀏海、動態島、底部橫條 */
   --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
+  /* 底部要扣掉 iOS 主畫面模式畫不到的落差（--vp-gap，見 viewportFix.ts） */
+  --sab: max(0px, calc(env(safe-area-inset-bottom, 0px) - var(--vp-gap, 0px)));
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
 
@@ -57,10 +58,9 @@ body {
   inset: 0;
 }
 
-/* iOS 主畫面全螢幕模式：高度由 viewportFix.ts 用螢幕高度算出來（原因見該檔說明） */
-:root[data-standalone] #root {
-  bottom: auto;
-  height: var(--app-h, 100%);
+/* iOS 主畫面全螢幕模式：底部畫不到的那一條用工具列的顏色接起來（原因見 viewportFix.ts） */
+:root[data-standalone] {
+  background: var(--surface);
 }
 
 button {

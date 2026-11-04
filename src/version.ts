@@ -4,6 +4,7 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.2.1': ['修正主畫面模式下，底部工具列的圖示和文字被切到：工具列往上移到看得到的範圍內'],
   '0.2.0': [
     '可以從相簿選照片，用 WebGL 顯示預覽',
     '照片區可以雙指縮放、拖曳，雙擊放大／還原',
