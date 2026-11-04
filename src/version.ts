@@ -4,6 +4,10 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.9.0': [
+    '新增「臉部重塑」：瘦臉、大眼、瘦鼻、下巴、額頭、嘴型，自動找臉，合照裡每張臉都會套用',
+    '新增「瘦臉瘦身」：用手指把輪廓往內推，臉、腰、手臂都可以，每推一筆都能復原',
+  ],
   '0.8.0': [
     '新增手指工具：一指塗抹、兩指縮放移動照片，放大後可以畫得更細',
     '美膚新增「手動」：用手指塗哪裡就磨皮或美白哪裡，沒有臉的照片也能用',

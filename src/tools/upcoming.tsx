@@ -5,9 +5,7 @@ import type { ReactNode } from 'react'
 import type { EditorMode } from '../core/tool.ts'
 import {
   IconBlur,
-  IconBody,
   IconEye,
-  IconFaceShape,
   IconFrame,
   IconHair,
   IconHeight,
@@ -38,8 +36,6 @@ export const UPCOMING: UpcomingTool[] = [
   // 人像美容
   { id: 'beauty-recipe', label: '美容配方', icon: <IconRecipe />, placement: { portrait: 10 } },
   { id: 'one-tap', label: '一鍵美顏', icon: <IconWand />, placement: { portrait: 20 } },
-  { id: 'reshape', label: '臉部重塑', icon: <IconFaceShape />, placement: { portrait: 50 } },
-  { id: 'slim', label: '瘦臉瘦身', icon: <IconBody />, placement: { portrait: 60 } },
   { id: 'makeup', label: '美妝', icon: <IconLipstick />, placement: { portrait: 70 } },
   { id: 'eyes', label: '亮眼', icon: <IconEye />, placement: { portrait: 80 } },
   { id: 'teeth', label: '白牙', icon: <IconTooth />, placement: { portrait: 90 } },

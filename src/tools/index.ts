@@ -8,7 +8,9 @@ import { cropTool } from './crop/index.tsx'
 import { doodleTool } from './doodle/index.tsx'
 import { eraserTool } from './eraser/index.tsx'
 import { filterTool } from './filter/index.tsx'
+import { liquifyTool } from './liquify/index.tsx'
 import { mosaicTool } from './mosaic/index.tsx'
+import { reshapeTool } from './reshape/index.tsx'
 
 registerTool(adjustTool)
 registerTool(beautyTool)
@@ -18,3 +20,5 @@ registerTool(mosaicTool)
 registerTool(doodleTool)
 registerTool(acneTool)
 registerTool(eraserTool)
+registerTool(reshapeTool)
+registerTool(liquifyTool)

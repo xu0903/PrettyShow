@@ -1,12 +1,11 @@
 // 美膚的兩種面板：自動（找臉、滑桿）和手動（筆刷）
 
-import { useEffect, useState } from 'react'
-import { useEditor } from '../../core/store.ts'
+import { useState } from 'react'
 import { Slider } from '../../ui/Slider.tsx'
 import { BrushControls } from '../brush/BrushControls.tsx'
-import { detectFaces } from './faces.ts'
 import type { BeautyParams } from './index.tsx'
 import { ITEMS, useUi, type Kind } from './ui.ts'
+import { LOADING_TEXT, useFaceStatus } from './useFaces.ts'
 
 export function ManualPanel() {
   const kind = useUi((s) => s.kind)
@@ -34,28 +33,12 @@ export function AutoPanel({
   onChange: (p: BeautyParams) => void
   onCommit: (p: BeautyParams) => void
 }) {
-  const preview = useEditor((s) => s.photo?.preview)
   const [selected, setSelected] = useState<Kind>('smooth')
-  const [found, setFound] = useState<{ preview: HTMLCanvasElement; faces: number } | { error: string } | null>(null)
+  const status = useFaceStatus()
 
-  // 面板一打開就開始找臉，拖滑桿時才不用等
-  useEffect(() => {
-    if (!preview) return
-    const task = { alive: true }
-    detectFaces(preview)
-      .then((d) => task.alive && setFound({ preview, faces: d.faces.length }))
-      .catch((e: unknown) => {
-        console.warn('臉部偵測失敗', e)
-        if (task.alive) setFound({ error: '臉部辨識載入失敗，請確認網路後再打開一次' })
-      })
-    return () => {
-      task.alive = false
-    }
-  }, [preview])
-
-  if (found && 'error' in found) return <p className="beauty-status">{found.error}</p>
-  const faces = found && found.preview === preview ? found.faces : null
-  if (faces === null) return <p className="beauty-status">正在找臉…（第一次使用要下載辨識模型，請稍等）</p>
+  if (status.state === 'error') return <p className="beauty-status">{status.message}</p>
+  if (status.state === 'loading') return <p className="beauty-status">{LOADING_TEXT}</p>
+  const { faces } = status
   if (faces === 0)
     return (
       <p className="beauty-status">
