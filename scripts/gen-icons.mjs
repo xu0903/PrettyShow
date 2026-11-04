@@ -5,6 +5,7 @@
 //   node scripts/gen-icons.mjs            → 用 DEFAULT_DESIGN 產生 public/icons/ 下的所有圖示
 //   node scripts/gen-icons.mjs C          → 改用 C 款
 //   node scripts/gen-icons.mjs --preview <輸出路徑.png>  → 產生六款並排的對照圖
+//   node scripts/gen-icons.mjs --options [資料夾]       → 每款各一張，輸出到 icon-options/（不進 git）
 import { deflateSync } from 'node:zlib'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -227,6 +228,30 @@ function renderDesign(key, size, scale = 1) {
   return buf
 }
 
+// 套上 iOS 圓角（圓角外填背景色），模擬主畫面上的樣子
+function roundedIcon(key, size, bg = [28, 28, 30]) {
+  const icon = renderDesign(key, size)
+  const mask = box(size / 2, size / 2, size, size, size * 0.225)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const a = Math.min(1, Math.max(0, 0.5 - mask(x + 0.5, y + 0.5)))
+      const i = (y * size + x) * 4
+      for (let c = 0; c < 3; c++) icon[i + c] = Math.round(bg[c] * (1 - a) + icon[i + c] * a)
+    }
+  }
+  return icon
+}
+
+// 每一款各輸出一張圖，方便在資料夾裡逐一挑選
+function renderOptions(dir) {
+  mkdirSync(dir, { recursive: true })
+  for (const k of Object.keys(designs)) {
+    writeFileSync(join(dir, `${k}.png`), encodePng(512, 512, roundedIcon(k, 512)))
+  }
+  renderPreview(join(dir, '全部對照.png'))
+  console.log('已輸出到', dir)
+}
+
 // 對照圖：六款排成 3x2，套上 iOS 圓角，看起來比較像實際主畫面
 function renderPreview(path) {
   const cell = 256
@@ -264,6 +289,8 @@ function renderPreview(path) {
 const args = process.argv.slice(2)
 if (args[0] === '--preview') {
   renderPreview(args[1] ?? join(outDir, '..', '..', 'icon-preview.png'))
+} else if (args[0] === '--options') {
+  renderOptions(args[1] ?? join(outDir, '..', '..', 'icon-options'))
 } else {
   const key = (args[0] ?? DEFAULT_DESIGN).toUpperCase()
   if (!designs[key]) throw new Error(`沒有 ${key} 款，可選：${Object.keys(designs).join(', ')}`)

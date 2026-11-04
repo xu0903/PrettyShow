@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 圖示選項（只用來挑選，不進版控）
+icon-options/

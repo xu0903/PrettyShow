@@ -10,7 +10,7 @@
   --accent-2: #8a5cff;
 
   --topbar-h: 48px;
-  --toolbar-h: 64px;
+  --toolbar-h: 56px;
 
   /* safe-area：瀏海、動態島、底部橫條 */
   --sat: env(safe-area-inset-top, 0px);
@@ -55,6 +55,17 @@ body {
 #root {
   position: fixed;
   inset: 0;
+}
+
+/* iOS 主畫面全螢幕模式（black-translucent）的已知問題：
+   inset: 0 / 100% 算出的高度會少掉頂部狀態列那一段，底部就多出一條空白。
+   全螢幕模式下沒有瀏覽器工具列，所以直接用 large viewport 高度撐滿整個螢幕。 */
+@media (display-mode: standalone) {
+  #root {
+    bottom: auto;
+    height: 100vh;
+    height: 100lvh;
+  }
 }
 
 button {
