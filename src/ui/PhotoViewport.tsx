@@ -59,7 +59,12 @@ export function PhotoViewport() {
     const s = useEditor.getState()
     const passes = s.comparing
       ? []
-      : buildPasses(selectViewState(s), getTools(), { pixelScale: 1 }, { activeToolId: s.activeToolId })
+      : buildPasses(
+          selectViewState(s),
+          getTools(),
+          { pixelScale: 1, photo: s.photo ?? undefined },
+          { activeToolId: s.activeToolId },
+        )
     const size = r.render(passes)
     setOutputSize((old) => (old && old.width === size.width && old.height === size.height ? old : size))
   }
@@ -100,13 +105,13 @@ export function PhotoViewport() {
   useEffect(() => {
     scheduleDraw()
     const task = { alive: true }
-    prepareTools(viewState, getTools(), { activeToolId })
+    prepareTools(viewState, getTools(), { activeToolId, photo: photo ?? undefined })
       .then(() => task.alive && scheduleDraw())
       .catch((e) => console.warn('工具資源載入失敗', e))
     return () => {
       task.alive = false
     }
-  }, [viewState, comparing, activeToolId])
+  }, [viewState, comparing, activeToolId, photo])
 
   // 量測照片區大小（旋轉手機、工具面板打開時會變）
   useEffect(() => {

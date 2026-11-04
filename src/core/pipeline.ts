@@ -3,7 +3,7 @@
 import type { RenderPass } from '../gl/pass.ts'
 import type { EditState } from './editStack.ts'
 import type { AnyTool } from './registry.ts'
-import type { PassContext } from './tool.ts'
+import type { PassContext, PrepareContext } from './tool.ts'
 
 /** 取得某個工具目前的參數（沒設定過就用預設值） */
 export function paramsOf<P>(state: EditState, tool: { id: string; defaultParams: P }): P {
@@ -40,13 +40,13 @@ export function buildPasses(
 export async function prepareTools(
   state: EditState,
   tools: readonly AnyTool[],
-  opts: BuildOptions = {},
+  opts: BuildOptions & PrepareContext = {},
 ): Promise<void> {
   await Promise.all(
     tools.map((tool) => {
       const params = effectiveParams(state, tool, opts)
       if (!tool.prepare || tool.isIdentity(params)) return undefined
-      return tool.prepare(params)
+      return tool.prepare(params, { photo: opts.photo })
     }),
   )
 }

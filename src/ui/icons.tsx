@@ -102,3 +102,12 @@ export const IconFlipV = () => (
     <path d="m7 15 10 5v-5z" />
   </Svg>
 )
+
+export const IconFace = () => (
+  <Svg>
+    <circle cx="11" cy="13" r="8" />
+    <path d="M8 15.5c1.6 1.4 4.4 1.4 6 0" />
+    <path d="M8.5 11h.01M13.5 11h.01" strokeWidth="2.6" />
+    <path d="M19 2.5v4M17 4.5h4" />
+  </Svg>
+)

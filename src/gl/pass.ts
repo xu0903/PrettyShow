@@ -15,6 +15,19 @@ export interface Texture3DSource {
   data: Uint8Array
 }
 
+/**
+ * 單通道 2D 貼圖（例如美顏的皮膚遮罩），以 0..1 的 uv 取樣，和輸出解析度無關。
+ * 資料的第一列是圖片的「最下面」一列，和 GL 的座標慣例一致。
+ */
+export interface Texture2DSource {
+  kind: '2d'
+  key: string
+  width: number
+  height: number
+  /** R8，長度 width × height */
+  data: Uint8Array
+}
+
 export interface RenderPass {
   /** 用來快取編譯好的 program；同一段 fragment 要用同一個 id */
   id: string
@@ -28,7 +41,12 @@ export interface RenderPass {
    */
   fragment: string
   uniforms?: Record<string, UniformValue>
-  textures?: Record<string, Texture3DSource>
+  textures?: Record<string, Texture3DSource | Texture2DSource>
+  /**
+   * 讀取前面某一步的輸出：{ sampler 名稱: 那一步的 id }。
+   * 例如磨皮最後一步要同時看到模糊後和模糊前的畫面。
+   */
+  inputs?: Record<string, string>
   /** 輸出尺寸；不提供就和輸入一樣（裁切、旋轉會改變尺寸） */
   outputSize?: (input: Size) => Size
 }

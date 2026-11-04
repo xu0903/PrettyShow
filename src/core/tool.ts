@@ -2,11 +2,12 @@
 // 核心（編輯堆疊、渲染管線、工具列）不需要知道有哪些工具。
 //
 // 之後要加的工具類型：
-// - 美顏（MediaPipe）：用 prepare 先偵測臉部特徵點，再用 steps 做網格變形／磨皮 shader
+// - 美顏（MediaPipe）：用 prepare 先偵測臉部特徵點，再用 steps 做網格變形／磨皮 shader（tools/beauty）
 // - AI 工具（Cloudflare Worker）：用 raster 步驟產生新的點陣圖當作檢查點（之後再加入介面）
 
 import type { ComponentType, ReactNode } from 'react'
 import type { RenderPass } from '../gl/pass.ts'
+import type { LoadedPhoto } from '../image/load.ts'
 
 /** 產生 shader 步驟時的環境資訊 */
 export interface PassContext {
@@ -15,6 +16,13 @@ export interface PassContext {
    * 以像素為單位的效果（例如銳化半徑）要乘上這個值，預覽和匯出的效果才會一致。
    */
   pixelScale: number
+  /** 正在編輯的照片；需要照片內容的工具（例如美顏要找臉）用它來查快取 */
+  photo?: LoadedPhoto
+}
+
+/** prepare 時的環境資訊 */
+export interface PrepareContext {
+  photo?: LoadedPhoto
 }
 
 /** 管線中的一個步驟；order 越小越先執行 */
@@ -25,6 +33,7 @@ export interface GpuStep {
 
 /** 建議的順序區間（同一個工具的不同步驟可以放在不同區間） */
 export const ORDER = {
+  retouch: 50, // 美顏：在裁切之前，座標和原圖一致，臉部位置才對得上
   geometry: 100, // 裁切、旋轉、翻轉
   color: 200, // 亮度、對比、色溫…
   filter: 300, // LUT 濾鏡
@@ -60,7 +69,7 @@ export interface EditTool<P> {
    */
   steps?: (params: P, ctx: PassContext) => GpuStep[]
   /** 非同步準備資源（下載 LUT、偵測臉部…），完成後 steps 才能產生完整的步驟 */
-  prepare?: (params: P) => Promise<void>
+  prepare?: (params: P, ctx: PrepareContext) => Promise<void>
   /**
    * 這個工具的面板打開時，畫面改用這組參數顯示。
    * 例如裁切時要看到整張照片，才能拖動裁切框。

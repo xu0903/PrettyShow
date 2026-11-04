@@ -39,7 +39,7 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number):
 export async function exportPhoto(photo: LoadedPhoto, state: EditState): Promise<ExportResult> {
   const tools = getTools()
   // 濾鏡之類的資源要先準備好；匯出不看目前打開的工具，裁切一定會套用
-  await prepareTools(state, tools)
+  await prepareTools(state, tools, { photo })
 
   const { canvas: full } = await decodeForExport(photo.file, getMaxTextureSize())
   const sourceWidth = full.width
@@ -54,7 +54,7 @@ export async function exportPhoto(photo: LoadedPhoto, state: EditState): Promise
     // 已經上傳到 GPU 了，CPU 這份先釋放
     releaseCanvas(full)
     // 銳化半徑這類以像素為單位的效果，要跟著放大才會和預覽看起來一樣
-    const passes = buildPasses(state, tools, { pixelScale: sourceWidth / photo.preview.width })
+    const passes = buildPasses(state, tools, { pixelScale: sourceWidth / photo.preview.width, photo })
     const size = renderer.render(passes)
     // GPU 被系統回收的話畫面是空的，不要輸出一張黑圖
     if (renderer.isLost) throw new Error('記憶體不足，匯出失敗，請關掉其他 App 再試一次')

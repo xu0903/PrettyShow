@@ -2,7 +2,7 @@
 // 預覽和匯出共用同一個類別，只是 canvas 和來源圖的尺寸不同。
 
 import type { Size } from './limits.ts'
-import { copyPass, type RenderPass, type Texture3DSource } from './pass.ts'
+import { copyPass, type RenderPass, type Texture2DSource, type Texture3DSource } from './pass.ts'
 import { Program } from './program.ts'
 
 interface RenderTarget {
@@ -23,10 +23,12 @@ export class Renderer {
   readonly canvas: HTMLCanvasElement | OffscreenCanvas
   private gl!: WebGL2RenderingContext
   private programs = new Map<string, Program>()
-  private textures3d = new Map<string, WebGLTexture>()
+  private textures = new Map<string, WebGLTexture>()
   private sourceTexture: WebGLTexture | null = null
   private sourceSize: Size = { width: 1, height: 1 }
   private targets: RenderTarget[] = []
+  /** 被後面步驟用 inputs 讀取的輸出，各自保留一個 framebuffer，不參與輪流使用 */
+  private kept = new Map<string, RenderTarget>()
   /** 中間結果用 16-bit 浮點，連續多步調色時比較不會出現色階斷層 */
   private intermediateFormat: { internal: number; type: number } | null = null
   private lost = false
@@ -61,8 +63,9 @@ export class Renderer {
     canvas.addEventListener('webglcontextrestored', () => {
       this.lost = false
       this.programs.clear()
-      this.textures3d.clear()
+      this.textures.clear()
       this.targets = []
+      this.kept.clear()
       this.sourceTexture = null
       this.init()
       if (this.source) this.setSource(this.source)
@@ -109,6 +112,9 @@ export class Renderer {
 
     let inputTex = this.sourceTexture
     let inputSize = this.sourceSize
+    // 有被後面步驟讀取的輸出要另外保留
+    const keep = new Set(list.flatMap((p) => Object.values(p.inputs ?? {})))
+    const outputs = new Map<string, WebGLTexture>()
 
     list.forEach((pass, i) => {
       const last = i === list.length - 1
@@ -121,7 +127,7 @@ export class Renderer {
         if (this.canvas.height !== outSize.height) this.canvas.height = outSize.height
         gl.bindFramebuffer(gl.FRAMEBUFFER, null)
       } else {
-        const target = this.target(i % 2, outSize)
+        const target = keep.has(pass.id) ? this.keptTarget(pass.id, outSize) : this.target(i % 2, outSize)
         gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer)
       }
       gl.viewport(0, 0, outSize.width, outSize.height)
@@ -136,15 +142,24 @@ export class Renderer {
         const unit = program.samplerUnits.get(name)
         if (unit === undefined) continue
         gl.activeTexture(gl.TEXTURE0 + unit)
-        gl.bindTexture(gl.TEXTURE_3D, this.texture3d(src))
+        gl.bindTexture(src.kind === '3d' ? gl.TEXTURE_3D : gl.TEXTURE_2D, this.texture(src))
+      }
+      for (const [name, id] of Object.entries(pass.inputs ?? {})) {
+        const unit = program.samplerUnits.get(name)
+        const tex = outputs.get(id)
+        if (unit === undefined) continue
+        if (!tex) throw new Error(`步驟 ${pass.id} 要讀取的 ${id} 不在它前面`)
+        gl.activeTexture(gl.TEXTURE0 + unit)
+        gl.bindTexture(gl.TEXTURE_2D, tex)
       }
 
       gl.drawArrays(gl.TRIANGLES, 0, 3)
 
       if (!last) {
-        const target = this.targets[i % 2]
+        const target = keep.has(pass.id) ? this.kept.get(pass.id)! : this.targets[i % 2]
         inputTex = target.texture
         inputSize = outSize
+        outputs.set(pass.id, target.texture)
       } else {
         inputSize = outSize
       }
@@ -156,15 +171,16 @@ export class Renderer {
   dispose(): void {
     const gl = this.gl
     for (const p of this.programs.values()) p.dispose()
-    for (const t of this.textures3d.values()) gl.deleteTexture(t)
-    for (const t of this.targets) {
+    for (const t of this.textures.values()) gl.deleteTexture(t)
+    for (const t of [...this.targets, ...this.kept.values()]) {
       gl.deleteTexture(t.texture)
       gl.deleteFramebuffer(t.framebuffer)
     }
     if (this.sourceTexture) gl.deleteTexture(this.sourceTexture)
     this.programs.clear()
-    this.textures3d.clear()
+    this.textures.clear()
     this.targets = []
+    this.kept.clear()
     this.sourceTexture = null
     this.source = null
     gl.getExtension('WEBGL_lose_context')?.loseContext()
@@ -181,8 +197,21 @@ export class Renderer {
 
   /** 取得（或重建）第 slot 個中間 framebuffer，兩個輪流使用 */
   private target(slot: number, size: Size): RenderTarget {
+    const t = this.reuseTarget(this.targets[slot], size)
+    this.targets[slot] = t
+    return t
+  }
+
+  /** 取得（或重建）某一步專用、要保留給後面讀取的 framebuffer */
+  private keptTarget(id: string, size: Size): RenderTarget {
+    const t = this.reuseTarget(this.kept.get(id), size)
+    this.kept.set(id, t)
+    return t
+  }
+
+  /** 尺寸一樣就沿用，不一樣就刪掉重建 */
+  private reuseTarget(existing: RenderTarget | undefined, size: Size): RenderTarget {
     const gl = this.gl
-    const existing = this.targets[slot]
     if (existing && existing.width === size.width && existing.height === size.height) return existing
     if (existing) {
       gl.deleteTexture(existing.texture)
@@ -196,16 +225,32 @@ export class Renderer {
     const framebuffer = gl.createFramebuffer()
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0)
-    const t = { texture, framebuffer, ...size }
-    this.targets[slot] = t
+    return { texture, framebuffer, ...size }
+  }
+
+  private texture(src: Texture3DSource | Texture2DSource): WebGLTexture {
+    const cached = this.textures.get(src.key)
+    if (cached) return cached
+    const t = src.kind === '3d' ? this.upload3d(src) : this.upload2d(src)
+    this.textures.set(src.key, t)
     return t
   }
 
-  private texture3d(src: Texture3DSource): WebGLTexture {
-    let t = this.textures3d.get(src.key)
-    if (t) return t
+  private upload2d(src: Texture2DSource): WebGLTexture {
     const gl = this.gl
-    t = gl.createTexture()
+    const t = gl.createTexture()
+    gl.bindTexture(gl.TEXTURE_2D, t)
+    // 單通道資料每列不一定是 4 的倍數
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, src.width, src.height, 0, gl.RED, gl.UNSIGNED_BYTE, src.data)
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4)
+    setSampling(gl)
+    return t
+  }
+
+  private upload3d(src: Texture3DSource): WebGLTexture {
+    const gl = this.gl
+    const t = gl.createTexture()
     gl.bindTexture(gl.TEXTURE_3D, t)
     gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA8, src.size, src.size, src.size, 0, gl.RGBA, gl.UNSIGNED_BYTE, src.data)
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
@@ -213,7 +258,6 @@ export class Renderer {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE)
-    this.textures3d.set(src.key, t)
     return t
   }
 

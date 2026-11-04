@@ -4,6 +4,12 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.6.0': [
+    '新增「美顏」：磨皮、美白，會自動找出照片裡的臉（最多 6 張）',
+    '磨皮只作用在皮膚上，眼睛、眉毛、嘴唇和輪廓保持清楚',
+    '第一次打開美顏要下載臉部辨識（約 8MB），之後離線也能用',
+    '更新通知會列出你沒看到的每一版',
+  ],
   '0.5.0': [
     '新增「匯出」：右上角的分享鍵，用原圖解析度輸出，按「儲存到相簿／分享」→「儲存影像」就存進相簿',
     '裁切比例改成好認的名字：方格、IG 貼文、IG 主頁、IG 限動、IG 橫式、寬螢幕，旁邊有小框圖示',
@@ -31,4 +37,32 @@ export const CHANGELOG: Record<string, string[]> = {
     '更新後打開 App 會跳出這個通知',
   ],
   '0.1.0': ['第一版：PWA 外框、版面與部署'],
+}
+
+/** 比較版本號（'0.10.0' > '0.9.1'）；回傳正數代表 a 比較新 */
+export function compareVersions(a: string, b: string): number {
+  const pa = a.split('.').map(Number)
+  const pb = b.split('.').map(Number)
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0)
+    if (d !== 0) return d
+  }
+  return 0
+}
+
+/**
+ * 從上次看到的版本之後，到目前版本為止的所有更新內容（新的在前）。
+ * 中間有版本沒打開過 App 的話，那幾版的內容也會一起列出來。
+ * seen 不是合法版本號（例如加入版本號之前的舊版）時只列目前這一版。
+ */
+export function changesSince(
+  seen: string,
+  current: string = APP_VERSION,
+  log: Record<string, string[]> = CHANGELOG,
+): { version: string; notes: string[] }[] {
+  const valid = /^\d+(\.\d+)*$/.test(seen)
+  return Object.keys(log)
+    .filter((v) => compareVersions(v, current) <= 0 && (valid ? compareVersions(v, seen) > 0 : v === current))
+    .sort((a, b) => compareVersions(b, a))
+    .map((version) => ({ version, notes: log[version] }))
 }

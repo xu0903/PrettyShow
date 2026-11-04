@@ -2,9 +2,11 @@
 
 import { registerTool } from '../core/registry.ts'
 import { adjustTool } from './adjust/index.tsx'
+import { beautyTool } from './beauty/index.tsx'
 import { cropTool } from './crop/index.tsx'
 import { filterTool } from './filter/index.tsx'
 
 registerTool(adjustTool)
+registerTool(beautyTool)
 registerTool(filterTool)
 registerTool(cropTool)

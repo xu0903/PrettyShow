@@ -27,6 +27,22 @@
   font-weight: 700;
 }
 
+.update-body {
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.update-version {
+  margin: 12px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.update-body section:first-child .update-version {
+  margin-top: 0;
+}
+
 .update-notes {
   margin: 0;
   padding-left: 18px;
