@@ -1,0 +1,133 @@
+/* ---- 整體版面：上方頂部列、中間照片、下方工具列 ---- */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+}
+
+/* 頂部列：上方要讓出瀏海／動態島的空間 */
+.topbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(var(--topbar-h) + var(--sat));
+  padding: var(--sat) 8px 0;
+}
+
+.topbar-group {
+  display: flex;
+  gap: 4px;
+  min-width: 88px;
+}
+
+.topbar-group:last-child {
+  justify-content: flex-end;
+}
+
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.icon-btn:active:not(:disabled) {
+  background: var(--surface-2);
+}
+
+/* 照片區 */
+.app-main {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* 照片區自己處理所有觸控手勢 */
+  touch-action: none;
+}
+
+.viewport-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 16px;
+}
+
+.pick-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
+/* 底部工具列：下方要讓出 Home 橫條的空間 */
+.toolbar {
+  flex: none;
+  display: flex;
+  justify-content: space-around;
+  height: calc(var(--toolbar-h) + var(--sab));
+  padding-bottom: var(--sab);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.tool-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.tool-tab[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+/* 暫時的檢查卡片 */
+.diag {
+  width: min(100%, 320px);
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.diag-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.diag-ok {
+  color: #5fd38d;
+}
+
+.diag-warn {
+  color: #ffb35f;
+}

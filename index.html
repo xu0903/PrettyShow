@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover：讓內容延伸到瀏海和底部橫條下方，再用 safe-area 自己留白 -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>PrettyShow</title>
+    <meta name="description" content="自用的 iPhone 修圖工具" />
+    <meta name="theme-color" content="#0e0e11" />
+
+    <!-- iOS 加到主畫面後的全螢幕設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PrettyShow" />
+    <!-- 避免 iOS 把數字當成電話號碼加底線 -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="icon" type="image/png" href="./icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

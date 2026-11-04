@@ -1,0 +1,49 @@
+/// <reference types="vitest/config" />
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
+
+// GitHub Pages 會把網站放在 https://<帳號>.github.io/<repo>/ 底下，
+// 所以部署時由 GitHub Actions 傳入 BASE_PATH=/<repo>/；本機開發則用根路徑。
+const base = process.env.BASE_PATH ?? '/'
+
+export default defineConfig({
+  base,
+  server: {
+    // 開放區網連線，讓同一個 Wi-Fi 的 iPhone 可以連進來
+    host: true,
+  },
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      // manifest 以外的 iOS 專用 meta 寫在 index.html
+      includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon-32.png'],
+      manifest: {
+        name: 'PrettyShow 修圖',
+        short_name: 'PrettyShow',
+        description: '自用的 iPhone 修圖工具',
+        lang: 'zh-Hant-TW',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#0e0e11',
+        theme_color: '#0e0e11',
+        // 用相對路徑，部署在子路徑下也能正確運作
+        start_url: './',
+        scope: './',
+        icons: [
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // 預先快取 App 本體和內建 LUT，讓 App 可以離線開啟
+        globPatterns: ['**/*.{js,css,html,png,svg,cube,webmanifest}'],
+      },
+    }),
+  ],
+  test: {
+    environment: 'node',
+  },
+})

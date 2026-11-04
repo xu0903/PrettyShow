@@ -1,0 +1,72 @@
+/* ---- 設計變數 ---- */
+:root {
+  --bg: #0e0e11;
+  --surface: #18181d;
+  --surface-2: #232329;
+  --line: #2e2e36;
+  --text: #f2f2f5;
+  --text-dim: #9a9aa6;
+  --accent: #ff5f8f;
+  --accent-2: #8a5cff;
+
+  --topbar-h: 48px;
+  --toolbar-h: 64px;
+
+  /* safe-area：瀏海、動態島、底部橫條 */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 整頁固定不捲動、不回彈；只有照片區自己處理手勢 */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--bg);
+}
+
+body {
+  /* manipulation：關閉雙擊縮放，但保留點擊 */
+  touch-action: manipulation;
+  /* 長按不要跳出 iOS 的選取／放大鏡／圖片選單 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  position: fixed;
+  inset: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
