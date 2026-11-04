@@ -7,9 +7,13 @@ import { beautyTool } from './beauty/index.tsx'
 import { cropTool } from './crop/index.tsx'
 import { doodleTool } from './doodle/index.tsx'
 import { eraserTool } from './eraser/index.tsx'
+import { eyesTool, teethTool } from './features/index.tsx'
 import { filterTool } from './filter/index.tsx'
+import { hairTool } from './hair/index.tsx'
 import { liquifyTool } from './liquify/index.tsx'
+import { makeupTool } from './makeup/index.tsx'
 import { mosaicTool } from './mosaic/index.tsx'
+import { oneTapTool } from './onetap/index.tsx'
 import { reshapeTool } from './reshape/index.tsx'
 
 registerTool(adjustTool)
@@ -22,3 +26,8 @@ registerTool(acneTool)
 registerTool(eraserTool)
 registerTool(reshapeTool)
 registerTool(liquifyTool)
+registerTool(makeupTool)
+registerTool(eyesTool)
+registerTool(teethTool)
+registerTool(hairTool)
+registerTool(oneTapTool)

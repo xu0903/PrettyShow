@@ -1,5 +1,5 @@
 // 臉部偵測：用 MediaPipe Face Landmarker 在預覽圖上找臉，每張照片只做一次。
-// MediaPipe 的程式（約 13MB 的 wasm）和模型（3.6MB）放在自己的網站上，
+// MediaPipe 的程式（約 13MB 的 wasm，壓縮後 4MB）和模型（3.6MB）放在自己的網站上，
 // 第一次用到美顏時才下載，之後由 service worker 快取，可以離線使用。
 
 import type { FaceLandmarker } from '@mediapipe/tasks-vision'
@@ -9,6 +9,9 @@ import type { Texture2DSource } from '../../gl/pass.ts'
 import { buildSkinMask, faceWidth, maskSize, type Point } from './mask.ts'
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models/face_landmarker.task`
+
+/** MediaPipe 的程式檔位置（臉部辨識、頭髮分割共用，瀏覽器只會下載一次） */
+export const VISION_FILESET = { wasmLoaderPath, wasmBinaryPath }
 /** 一張照片最多找幾張臉 */
 const MAX_FACES = 6
 
@@ -28,7 +31,7 @@ function getLandmarker(): Promise<FaceLandmarker> {
     landmarker = (async () => {
       const { FaceLandmarker } = await import('@mediapipe/tasks-vision')
       return FaceLandmarker.createFromOptions(
-        { wasmLoaderPath, wasmBinaryPath },
+        VISION_FILESET,
         {
           // iPhone 上 GPU 版偶爾不穩定；單張照片用 CPU 也只要零點幾秒
           baseOptions: { modelAssetPath: MODEL_URL, delegate: 'CPU' },

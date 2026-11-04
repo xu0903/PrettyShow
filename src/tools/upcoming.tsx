@@ -5,17 +5,12 @@ import type { ReactNode } from 'react'
 import type { EditorMode } from '../core/tool.ts'
 import {
   IconBlur,
-  IconEye,
   IconFrame,
-  IconHair,
   IconHeight,
-  IconLipstick,
   IconMagic,
   IconRecipe,
   IconSticker,
   IconText,
-  IconTooth,
-  IconWand,
 } from '../ui/icons.tsx'
 
 export interface UpcomingTool {
@@ -35,10 +30,5 @@ export const UPCOMING: UpcomingTool[] = [
   { id: 'bokeh', label: '背景虛化', icon: <IconBlur />, placement: { beautify: 120 } },
   // 人像美容
   { id: 'beauty-recipe', label: '美容配方', icon: <IconRecipe />, placement: { portrait: 10 } },
-  { id: 'one-tap', label: '一鍵美顏', icon: <IconWand />, placement: { portrait: 20 } },
-  { id: 'makeup', label: '美妝', icon: <IconLipstick />, placement: { portrait: 70 } },
-  { id: 'eyes', label: '亮眼', icon: <IconEye />, placement: { portrait: 80 } },
-  { id: 'teeth', label: '白牙', icon: <IconTooth />, placement: { portrait: 90 } },
   { id: 'taller', label: '增高', icon: <IconHeight />, placement: { portrait: 100 } },
-  { id: 'hair', label: '美髮', icon: <IconHair />, placement: { portrait: 120 } },
 ]

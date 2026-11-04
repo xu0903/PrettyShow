@@ -53,6 +53,9 @@ interface EditorState {
 
   previewTool: (toolId: string, params: unknown) => void
   commitTool: (toolId: string, params: unknown) => void
+  /** 一次設定好幾個工具的參數（例如一鍵美顏），只算一筆復原紀錄 */
+  previewPatch: (patch: Record<string, unknown>) => void
+  commitPatch: (patch: Record<string, unknown>) => void
   undo: () => void
   redo: () => void
   openTool: (id: string) => void
@@ -244,6 +247,15 @@ export const useEditor = create<EditorState>((set, get) => {
     commitTool: (toolId, params) => {
       const h = get().history
       setHistory(stack.commit(h, stack.withToolParams(h.present, toolId, params)))
+    },
+
+    previewPatch: (patch) => {
+      set({ live: { ...get().history.present, ...patch } })
+    },
+
+    commitPatch: (patch) => {
+      const h = get().history
+      setHistory(stack.commit(h, { ...h.present, ...patch }))
     },
 
     undo: () => setHistory(stack.undo(get().history)),

@@ -63,6 +63,11 @@
   color: var(--text-dim);
 }
 
+.brush-row-label {
+  /* 和下面「大小」的字對齊 */
+  padding-left: 14px;
+}
+
 .brush-size .slider {
   flex: 1;
 }

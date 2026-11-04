@@ -20,4 +20,11 @@ describe('strokesToOps', () => {
     expect(total).toBeGreaterThan(0.18)
     expect(total).toBeLessThanOrEqual(0.2 + 1e-9)
   })
+
+  it('力度 0.3：推的量是三成', () => {
+    const full = strokesToOps([{ pts: [0.2, 0.5, 0.4, 0.5], r: 0.03 }], 1000, 1000)
+    const soft = strokesToOps([{ pts: [0.2, 0.5, 0.4, 0.5], r: 0.03, strength: 0.3 }], 1000, 1000)
+    const sum = (ops: typeof full) => ops.reduce((t, o) => t + (o.kind === 'move' ? o.dx : 0), 0)
+    expect(sum(soft)).toBeCloseTo(sum(full) * 0.3, 6)
+  })
 })
