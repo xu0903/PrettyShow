@@ -1,32 +1,19 @@
-# React + TypeScript + Vite
+# PrettyShow
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+自用的 iPhone 修圖 PWA（Vite + React + TypeScript + WebGL2）。
 
-Currently, two official plugins are available:
+## 指令
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| 指令 | 用途 |
+|---|---|
+| `npm run dev` | 開發伺服器（已開放區網，iPhone 可連 `http://<電腦IP>:5173`） |
+| `npm run build` | 正式建置到 `dist/` |
+| `npm run preview` | 預覽正式建置結果（同樣開放區網） |
+| `npm test` | 單元測試 |
+| `npm run gen:icons` | 重新產生 App 圖示（款式在 `scripts/gen-icons.mjs` 的 `DEFAULT_DESIGN`） |
+| `node scripts/gen-icons.mjs --preview out.png` | 產生全部圖示款式的對照圖 |
 
-## React Compiler
+## 部署
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+push 到 `main` 後，GitHub Actions 會自動建置並部署到 GitHub Pages：
+`https://<帳號>.github.io/<repo>/`

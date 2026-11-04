@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 // 暫時的檢查卡片：讓你在 iPhone 上確認 PWA 環境是否正確。M1 完成後移除。
 interface Diag {
@@ -38,9 +38,8 @@ function collect(): Diag {
 }
 
 export function DiagnosticsCard() {
-  const [d, setD] = useState<Diag | null>(null)
-  useEffect(() => setD(collect()), [])
-  if (!d) return null
+  // 只在第一次 render 時檢查一次
+  const [d] = useState<Diag>(collect)
 
   const row = (label: string, value: string, ok: boolean) => (
     <div className="diag-row" key={label}>
