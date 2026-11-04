@@ -98,15 +98,23 @@
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
+/* 底部：工具面板 + 工具分頁 */
+.bottom {
+  flex: none;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.tool-panel {
+  border-bottom: 1px solid var(--line);
+}
+
 /* 底部工具列：下方要讓出 Home 橫條的空間 */
 .toolbar {
-  flex: none;
   display: flex;
   justify-content: space-around;
   height: calc(var(--toolbar-h) + var(--sab));
   padding-bottom: var(--sab);
-  border-top: 1px solid var(--line);
-  background: var(--surface);
 }
 
 .tool-tab {
@@ -139,4 +147,17 @@
   color: #ffb35f;
   font-size: 14px;
   text-align: center;
+}
+
+/* 長按看原圖時的標示 */
+.compare-badge {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  translate: -50% 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: rgb(0 0 0 / 0.6);
+  pointer-events: none;
 }

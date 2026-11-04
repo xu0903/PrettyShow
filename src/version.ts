@@ -4,6 +4,13 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.3.0': [
+    '新增「調整」：亮度、對比、飽和度、色溫、色調、銳化、暈影',
+    '滑桿在整條上任何位置左右滑都能調，雙擊滑桿回到 0',
+    '可以復原／重做（頂部左邊的箭頭）',
+    '長按照片看原圖，放開回到修好的樣子',
+    '關掉 App 再打開，會接著上次修到一半的照片',
+  ],
   '0.2.1': ['修正主畫面模式下，底部工具列的圖示和文字被切到：工具列往上移到看得到的範圍內'],
   '0.2.0': [
     '可以從相簿選照片，用 WebGL 顯示預覽',

@@ -4,9 +4,13 @@ import { IconPhoto, IconRedo, IconSettings, IconShare, IconUndo } from './icons.
 import { PickPhotoButton } from './PickPhotoButton.tsx'
 import { SettingsSheet } from './SettingsSheet.tsx'
 
-// 頂部列：換照片、復原、重做、設定、匯出（復原／重做在 M2、匯出在 M6 接上）
+// 頂部列：換照片、復原、重做、設定、匯出（匯出在 M6 接上）
 export function TopBar() {
   const hasPhoto = useEditor((s) => s.photo !== null)
+  const canUndo = useEditor((s) => s.history.past.length > 0)
+  const canRedo = useEditor((s) => s.history.future.length > 0)
+  const undo = useEditor((s) => s.undo)
+  const redo = useEditor((s) => s.redo)
   const [settingsOpen, setSettingsOpen] = useState(false)
   return (
     <>
@@ -17,10 +21,10 @@ export function TopBar() {
               <IconPhoto />
             </PickPhotoButton>
           )}
-          <button className="icon-btn" aria-label="復原" disabled>
+          <button className="icon-btn" aria-label="復原" disabled={!canUndo} onClick={undo}>
             <IconUndo />
           </button>
-          <button className="icon-btn" aria-label="重做" disabled>
+          <button className="icon-btn" aria-label="重做" disabled={!canRedo} onClick={redo}>
             <IconRedo />
           </button>
         </div>
