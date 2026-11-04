@@ -7,7 +7,7 @@ import { IconFilter } from '../../ui/icons.tsx'
 import { Slider } from '../../ui/Slider.tsx'
 import { getLoadedLut, loadLut } from './lutCache.ts'
 import { lutPass } from './pass.ts'
-import { FILTERS } from './presets.ts'
+import { FILTERS, findFilter, GROUPS, type FilterGroup } from './presets.ts'
 import { FilterThumb } from './FilterThumb.tsx'
 import { getFilterThumbs, type FilterThumbs } from './thumbs.ts'
 import './filter.css'
@@ -44,6 +44,8 @@ export const filterTool = defineTool<FilterParams>({
   Panel: function FilterPanel({ params, onChange, onCommit }) {
     const preview = useEditor((s) => s.photo?.preview)
     const [thumbs, setThumbs] = useState<FilterThumbs | null>(null)
+    // 打開時顯示目前濾鏡所在的分類
+    const [group, setGroup] = useState<FilterGroup>(() => findFilter(params.lut)?.group ?? GROUPS[0].id)
 
     useEffect(() => {
       if (!preview) return
@@ -79,9 +81,17 @@ export const filterTool = defineTool<FilterParams>({
             <p className="filter-hint">選一款濾鏡</p>
           )}
         </div>
+        <div className="chip-row filter-groups">
+          {GROUPS.map((g) => (
+            <button key={g.id} className="chip" aria-pressed={g.id === group} onClick={() => setGroup(g.id)}>
+              {g.label}
+              {findFilter(params.lut)?.group === g.id && <span className="chip-dot" />}
+            </button>
+          ))}
+        </div>
         <div className="filter-row">
           <FilterThumb name="原圖" src={thumbs?.original} selected={params.lut === null} onClick={() => choose(null)} />
-          {FILTERS.map((f) => (
+          {FILTERS.filter((f) => f.group === group).map((f) => (
             <FilterThumb
               key={f.id}
               name={f.name}

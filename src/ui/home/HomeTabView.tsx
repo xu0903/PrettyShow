@@ -88,10 +88,10 @@ export function HomeTabView() {
           <IconIdPhoto />
           <span>證件照</span>
         </Soon>
-        <Soon className="row-tile" label="智慧優化">
+        <PickPhotoButton className="row-tile" mode="beautify" tool="auto">
           <IconMagic />
           <span>智慧優化</span>
-        </Soon>
+        </PickPhotoButton>
       </div>
 
       <div className="home-grid">

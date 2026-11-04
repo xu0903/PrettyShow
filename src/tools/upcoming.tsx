@@ -7,7 +7,6 @@ import {
   IconBlur,
   IconFrame,
   IconHeight,
-  IconMagic,
   IconRecipe,
   IconSticker,
   IconText,
@@ -23,7 +22,6 @@ export interface UpcomingTool {
 export const UPCOMING: UpcomingTool[] = [
   // 圖片美化
   { id: 'recipe', label: '美圖配方', icon: <IconRecipe />, placement: { beautify: 10 } },
-  { id: 'auto', label: '智慧優化', icon: <IconMagic />, placement: { beautify: 20 } },
   { id: 'text', label: '文字', icon: <IconText />, placement: { beautify: 60 } },
   { id: 'sticker', label: '貼紙', icon: <IconSticker />, placement: { beautify: 70 } },
   { id: 'frame', label: '邊框', icon: <IconFrame />, placement: { beautify: 80 } },

@@ -11,6 +11,10 @@ uniform float u_contrast;
 uniform float u_saturation;
 uniform float u_temperature;
 uniform float u_tint;
+uniform float u_highlights; // -1..1
+uniform float u_shadows;    // -1..1
+uniform float u_vibrance;   // -1..1
+uniform float u_fade;       // 0..1
 
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 
@@ -39,16 +43,42 @@ void main() {
   }
   c = mix(vec3(luma), c, sat);
 
+  // 高光、陰影：只動亮部或暗部，另一邊不受影響
+  float l = clamp(dot(c, LUMA), 0.0, 1.0);
+  float hw = smoothstep(0.45, 1.0, l);
+  float sw = 1.0 - smoothstep(0.0, 0.55, l);
+  c += u_highlights * 0.35 * hw * (u_highlights > 0.0 ? 1.0 - c : c);
+  c *= 1.0 + u_shadows * 0.8 * sw;
+
+  // 自然飽和度：越不飽和的顏色加越多，膚色和已經很鮮豔的顏色不會爆掉
+  if (u_vibrance != 0.0) {
+    vec3 cc = clamp(c, 0.0, 1.0);
+    float chroma = max(max(cc.r, cc.g), cc.b) - min(min(cc.r, cc.g), cc.b);
+    c = mix(vec3(dot(cc, LUMA)), c, 1.0 + u_vibrance * (1.0 - chroma) * 0.9);
+  }
+
+  // 褪色：抬起黑色、稍微降低飽和，像老照片
+  if (u_fade > 0.0) {
+    c = c * (1.0 - u_fade * 0.18) + u_fade * 0.13;
+    c = mix(vec3(dot(c, LUMA)), c, 1.0 - u_fade * 0.25);
+  }
+
   outColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }`
 
-/** 細節：銳化（USM）與暈影 */
+/** 細節：銳化（USM）、暈影、顆粒 */
 export const detailFragment =
   FRAGMENT_HEADER +
   /* glsl */ `
 uniform float u_sharpen;   // 0..1
 uniform float u_radius;    // 取樣半徑（像素），匯出原圖時會放大
 uniform float u_vignette;  // 0..1
+uniform float u_grain;     // 0..1
+
+// 每個位置固定的亂數（預覽和匯出一樣）
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
 
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 
@@ -75,6 +105,15 @@ void main() {
     vec2 p = (v_uv - 0.5) * (aspect > 1.0 ? vec2(aspect, 1.0) : vec2(1.0, 1.0 / aspect));
     float d = length(p) / length(aspect > 1.0 ? vec2(aspect, 1.0) * 0.5 : vec2(1.0, 1.0 / aspect) * 0.5);
     c *= 1.0 - u_vignette * 0.75 * smoothstep(0.35, 1.05, d);
+  }
+
+  if (u_grain > 0.0) {
+    // 顆粒的大小跟著解析度放大，匯出原圖時看起來和預覽一樣粗細
+    vec2 cell = floor(v_uv * u_outSize / max(u_radius, 1.0));
+    float n = hash(cell) + hash(cell + 31.7) - 1.0;
+    // 中間調最明顯，純黑純白比較少（底片的特性）
+    float l = dot(c, LUMA);
+    c += n * u_grain * 0.12 * (0.35 + 4.0 * l * (1.0 - l)) ;
   }
 
   outColor = vec4(clamp(c, 0.0, 1.0), 1.0);

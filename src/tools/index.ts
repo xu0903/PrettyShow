@@ -3,6 +3,7 @@
 import { registerTool } from '../core/registry.ts'
 import { acneTool } from './acne/index.tsx'
 import { adjustTool } from './adjust/index.tsx'
+import { autoTool } from './auto/index.tsx'
 import { beautyTool } from './beauty/index.tsx'
 import { cropTool } from './crop/index.tsx'
 import { doodleTool } from './doodle/index.tsx'
@@ -17,6 +18,7 @@ import { oneTapTool } from './onetap/index.tsx'
 import { reshapeTool } from './reshape/index.tsx'
 
 registerTool(adjustTool)
+registerTool(autoTool)
 registerTool(beautyTool)
 registerTool(filterTool)
 registerTool(cropTool)

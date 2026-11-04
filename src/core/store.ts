@@ -41,8 +41,8 @@ interface EditorState {
   /** 打開 App 時：搬移舊資料、讀圖庫，上次修到一半就直接回到編輯器 */
   init: () => Promise<void>
   setHomeTab: (tab: HomeTab) => void
-  /** 選了新照片：建立草稿並打開編輯器 */
-  openPhoto: (file: File, mode: EditorMode) => Promise<void>
+  /** 選了新照片：建立草稿並打開編輯器；指定 toolId 就直接打開那個工具（首頁的捷徑） */
+  openPhoto: (file: File, mode: EditorMode, toolId?: string) => Promise<void>
   /** 從圖庫打開草稿 */
   openDraft: (id: string, mode?: EditorMode) => Promise<void>
   /** 回首頁（先更新縮圖） */
@@ -181,12 +181,13 @@ export const useEditor = create<EditorState>((set, get) => {
 
     setHomeTab: (homeTab) => set({ homeTab }),
 
-    openPhoto: async (file, mode) => {
+    openPhoto: async (file, mode, toolId) => {
       const token = beginOpen(mode)
       try {
         const photo = await loadPhoto(file, file.name, getMaxTextureSize())
         if (token !== openToken) return releaseCanvas(photo.preview)
         set({ photo, status: 'ready' })
+        if (toolId) get().openTool(toolId)
         const meta = await drafts.createDraft(file, file.name, mode)
         if (token !== openToken) return
         set({ draftId: meta.id, gallery: await drafts.listDrafts() })

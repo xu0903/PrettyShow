@@ -16,6 +16,10 @@
   color: var(--text-dim);
 }
 
+.filter-groups {
+  padding-bottom: 6px;
+}
+
 .filter-row {
   display: flex;
   gap: 10px;

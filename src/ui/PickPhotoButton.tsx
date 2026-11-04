@@ -9,12 +9,15 @@ export function PickPhotoButton({
   children,
   label,
   mode,
+  tool,
 }: {
   className: string
   children: ReactNode
   label?: string
   /** 選好照片後打開哪個編輯器；不指定就用目前的 */
   mode?: EditorMode
+  /** 選好照片後直接打開這個工具 */
+  tool?: string
 }) {
   const openPhoto = useEditor((s) => s.openPhoto)
   return (
@@ -27,7 +30,7 @@ export function PickPhotoButton({
           const file = e.target.files?.[0]
           // 清空 value，下次選同一張照片也會觸發 onChange
           e.target.value = ''
-          if (file) void openPhoto(file, mode ?? useEditor.getState().mode)
+          if (file) void openPhoto(file, mode ?? useEditor.getState().mode, tool)
         }}
       />
       {children}
