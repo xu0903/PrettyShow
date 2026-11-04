@@ -69,6 +69,13 @@ describe('比例', () => {
     expect(out.width / out.height).toBeCloseTo(9 / 16, 2)
   })
 
+  it('IG 橫式 1.91:1 的裁切結果像素比例正確', () => {
+    const p = setAspect(DEFAULT_CROP, '1.91:1', size)
+    const out = croppedSize(size, p)
+    expect(out.width / out.height).toBeCloseTo(1.91, 2)
+    expect(p.rect.w).toBeCloseTo(1, 6) // 橫拍照片：寬度填滿
+  })
+
   it('原始比例在轉過的照片上用轉過後的比例', () => {
     const p = setAspect(rotateLeft(DEFAULT_CROP, size), 'original', size)
     expect(p.rect).toEqual({ x: 0, y: 0, w: 1, h: 1 })

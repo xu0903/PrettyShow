@@ -3,13 +3,16 @@
 import { useEditor } from '../../core/store.ts'
 import { defineTool, ORDER } from '../../core/tool.ts'
 import { IconCrop, IconFlipH, IconFlipV, IconRotateLeft } from '../../ui/icons.tsx'
+import { AspectShape } from './AspectShape.tsx'
 import { CropOverlay } from './CropOverlay.tsx'
 import {
+  aspectRatio,
   DEFAULT_CROP,
   flipHorizontal,
   flipVertical,
   FULL_RECT,
   isIdentityCrop,
+  rotatedSize,
   rotateLeft,
   setAspect,
   type AspectId,
@@ -18,14 +21,16 @@ import {
 import { cropPass } from './pass.ts'
 import './crop.css'
 
-const ASPECTS: { id: AspectId; label: string }[] = [
+// 用大家熟悉的名字（方格、IG 貼文…），比例數字放在旁邊當提示
+const ASPECTS: { id: AspectId; label: string; hint?: string }[] = [
   { id: 'free', label: '自由' },
   { id: 'original', label: '原始' },
-  { id: '1:1', label: '1:1' },
-  { id: '4:5', label: '4:5' },
-  { id: '9:16', label: '9:16' },
-  { id: '3:4', label: '3:4' },
-  { id: '16:9', label: '16:9' },
+  { id: '1:1', label: '方格', hint: '1:1' },
+  { id: '4:5', label: 'IG 貼文', hint: '4:5' },
+  { id: '3:4', label: 'IG 主頁', hint: '3:4' },
+  { id: '9:16', label: 'IG 限動', hint: '9:16' },
+  { id: '1.91:1', label: 'IG 橫式', hint: '1.91:1' },
+  { id: '16:9', label: '寬螢幕', hint: '16:9' },
 ]
 
 export const cropTool = defineTool<CropParams>({
@@ -45,6 +50,7 @@ export const cropTool = defineTool<CropParams>({
     const photo = useEditor((s) => s.photo)
     if (!photo) return null
     const size = { width: photo.width, height: photo.height }
+    const display = rotatedSize(size, params.quarter)
     return (
       <div className="crop-panel">
         <div className="crop-actions">
@@ -68,11 +74,13 @@ export const cropTool = defineTool<CropParams>({
           {ASPECTS.map((a) => (
             <button
               key={a.id}
-              className="chip"
+              className="chip aspect-chip"
               aria-pressed={params.aspect === a.id}
               onClick={() => onCommit(setAspect(params, a.id, size))}
             >
-              {a.label}
+              <AspectShape ratio={aspectRatio(a.id, display)} />
+              <span>{a.label}</span>
+              {a.hint && <span className="aspect-hint">{a.hint}</span>}
             </button>
           ))}
         </div>

@@ -106,6 +106,37 @@
   background: var(--surface-2);
 }
 
+.aspect-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 11px;
+}
+
+/* 比例小圖示：固定 14×14 的格子裡置中畫一個照比例的框，每個 chip 的文字才會對齊 */
+.aspect-box {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+}
+
+.aspect-shape {
+  box-sizing: border-box;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+
+.aspect-shape.is-free {
+  border-style: dashed;
+}
+
+.aspect-hint {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
 .crop-reset {
   font-size: 13px;
   color: var(--text);

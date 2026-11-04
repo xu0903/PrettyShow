@@ -15,6 +15,8 @@ interface RenderTarget {
 export interface RendererOptions {
   /** 匯出時要設為 true，才能在畫完之後用 toBlob 讀出畫面 */
   preserveDrawingBuffer?: boolean
+  /** 中間結果用 16-bit 浮點（預設 true）。匯出大圖時關掉，GPU 記憶體用量少一半 */
+  highPrecision?: boolean
 }
 
 export class Renderer {
@@ -28,6 +30,7 @@ export class Renderer {
   /** 中間結果用 16-bit 浮點，連續多步調色時比較不會出現色階斷層 */
   private intermediateFormat: { internal: number; type: number } | null = null
   private lost = false
+  private highPrecision: boolean
   /** 保留來源圖，GPU 被系統回收（context lost）後要重新上傳 */
   private source: TexImageSource | null = null
 
@@ -36,6 +39,7 @@ export class Renderer {
 
   constructor(canvas: HTMLCanvasElement | OffscreenCanvas, opts: RendererOptions = {}) {
     this.canvas = canvas
+    this.highPrecision = opts.highPrecision ?? true
     const attrs: WebGLContextAttributes = {
       alpha: false,
       antialias: false,
@@ -69,7 +73,7 @@ export class Renderer {
   private init(): void {
     const gl = this.gl
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE)
-    this.intermediateFormat = this.detectFloatTarget()
+    this.intermediateFormat = this.highPrecision ? this.detectFloatTarget() : null
   }
 
   get isLost(): boolean {

@@ -13,7 +13,7 @@ export interface Rect {
   h: number
 }
 
-export type AspectId = 'free' | 'original' | '1:1' | '4:5' | '9:16' | '3:4' | '16:9'
+export type AspectId = 'free' | 'original' | '1:1' | '4:5' | '3:4' | '9:16' | '1.91:1' | '16:9'
 
 export interface CropParams {
   /** 順時針旋轉了幾個 90°（0–3） */

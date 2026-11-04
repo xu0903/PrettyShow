@@ -4,6 +4,11 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.5.0': [
+    '新增「匯出」：右上角的分享鍵，用原圖解析度輸出，按「儲存到相簿／分享」→「儲存影像」就存進相簿',
+    '裁切比例改成好認的名字：方格、IG 貼文、IG 主頁、IG 限動、IG 橫式、寬螢幕，旁邊有小框圖示',
+    '新增 IG 橫式 1.91:1',
+  ],
   '0.4.0': [
     '新增「濾鏡」：暖陽、冷調、底片、日系、褪色、電影、復古、黑白，縮圖直接用你的照片預覽',
     '每款濾鏡都可以調強度',
