@@ -1,7 +1,9 @@
 import './ui/layout.css'
+import './ui/overlays.css'
 import { TopBar } from './ui/TopBar.tsx'
 import { PhotoViewport } from './ui/PhotoViewport.tsx'
 import { BottomToolbar } from './ui/BottomToolbar.tsx'
+import { UpdateToast } from './ui/UpdateToast.tsx'
 
 // 版面：照片在上、工具列在下，方便單手操作
 export default function App() {
@@ -12,6 +14,7 @@ export default function App() {
         <PhotoViewport />
       </main>
       <BottomToolbar />
+      <UpdateToast />
     </div>
   )
 }

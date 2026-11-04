@@ -2,6 +2,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import pkg from './package.json' with { type: 'json' }
 
 // GitHub Pages 會把網站放在 https://<帳號>.github.io/<repo>/ 底下，
 // 所以部署時由 GitHub Actions 傳入 BASE_PATH=/<repo>/；本機開發則用根路徑。
@@ -9,6 +10,11 @@ const base = process.env.BASE_PATH ?? '/'
 
 export default defineConfig({
   base,
+  // 版本號顯示在設定頁，版本改變時打開 App 會跳出更新通知（見 src/version.ts）
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   server: {
     // 開放區網連線，讓同一個 Wi-Fi 的 iPhone 可以連進來
     host: true,
@@ -17,6 +23,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // 在 main.tsx 用 virtual:pwa-register 自己註冊，新版裝好時才能自動重新載入
+      injectRegister: false,
       // manifest 以外的 iOS 專用 meta 寫在 index.html
       includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon-32.png'],
       manifest: {

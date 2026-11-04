@@ -1,7 +1,7 @@
 {
   "name": "prettyshow",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "lint": "oxlint",
-    "gen:icons": "node scripts/gen-icons.mjs"
+    "icons": "node scripts/split-icons.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.3.0",
@@ -24,6 +24,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "oxlint": "^1.89.0",
+    "sharp": "^0.35.5",
     "typescript": "~7.0.2",
     "vite": "^8.3.5",
     "vite-plugin-pwa": "^2.0.0",

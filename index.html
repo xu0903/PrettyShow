@@ -21,6 +21,16 @@
 
     <link rel="icon" type="image/png" href="./icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <script>
+      // 使用者選的 App 圖示要在「加入主畫面」之前就換好（id 要和 src/core/appIcon.ts 一致）
+      try {
+        var icon = localStorage.getItem('prettyshow.appIcon')
+        if (icon === 'cream' || icon === 'leaf') {
+          document.querySelector('link[rel="apple-touch-icon"]').setAttribute('href', './icons/icon-' + icon + '-180.png')
+          document.querySelector('link[rel="icon"]').setAttribute('href', './icons/icon-' + icon + '-192.png')
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

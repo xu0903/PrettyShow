@@ -10,10 +10,15 @@
 | `npm run build` | 正式建置到 `dist/` |
 | `npm run preview` | 預覽正式建置結果（同樣開放區網） |
 | `npm test` | 單元測試 |
-| `npm run gen:icons` | 重新產生 App 圖示（款式在 `scripts/gen-icons.mjs` 的 `DEFAULT_DESIGN`） |
-| `node scripts/gen-icons.mjs --preview out.png` | 產生全部圖示款式的對照圖 |
+| `npm run icons` | 從 `design/icon-sheet.png` 切出 App 圖示（選哪幾格、預設哪一個在 `scripts/split-icons.mjs`） |
 
 ## 部署
 
 push 到 `main` 後，GitHub Actions 會自動建置並部署到 GitHub Pages：
 `https://<帳號>.github.io/<repo>/`
+
+## 發佈新版
+
+1. 把 `package.json` 的 `version` 加一
+2. 在 `src/version.ts` 的 `CHANGELOG` 寫這一版的更新內容
+3. push 到 `main`；使用者下次打開 App 會自動更新，並跳出「已更新到 vX」的通知
