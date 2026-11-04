@@ -23,15 +23,45 @@ vec3 setLum(vec3 c, float l) {
 vec3 softLight(vec3 b, vec3 s) {
   return mix(2.0 * b * s + b * b * (1.0 - 2.0 * s), sqrt(b) * (2.0 * s - 1.0) + 2.0 * b * (1.0 - s), step(0.5, s));
 }
+
+// Oklab：接近人眼感受的色彩空間。L 是亮度，(a, b) 是色相和彩度；
+// 只換 (a, b)、保留大部分的 L，顏色像是半透明地疊在原本的唇色上
+vec3 toLinear(vec3 c) { return pow(max(c, 0.0), vec3(2.2)); }
+vec3 toSrgb(vec3 c) { return pow(max(c, 0.0), vec3(1.0 / 2.2)); }
+vec3 rgb2oklab(vec3 c) {
+  c = toLinear(c);
+  float l = pow(0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b, 1.0 / 3.0);
+  float m = pow(0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b, 1.0 / 3.0);
+  float s = pow(0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b, 1.0 / 3.0);
+  return vec3(0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+              1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+              0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s);
+}
+vec3 oklab2rgb(vec3 c) {
+  float l = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  float m = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  float s = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  l = l * l * l;
+  m = m * m * m;
+  s = s * s * s;
+  return toSrgb(vec3(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+                     -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+                     -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s));
+}
 `
 
-/** 美妝：嘴唇、腮紅、眉毛、眼影 */
+/**
+ * 美妝：嘴唇、腮紅、眉毛、眼影。
+ * 強度 1 是「自然的上限」：口紅最多蓋過六成、腮紅五成，不會像塗上一層色塊。
+ */
 export const makeupFragment =
   FRAGMENT_HEADER +
   COLOR_GLSL +
   /* glsl */ `
-uniform sampler2D u_regions; // R 嘴唇、G 腮紅、B 眉毛、A 眼影
+uniform sampler2D u_regions;  // R 嘴唇、G 腮紅、B 眉毛、A 眼影
+uniform sampler2D u_features; // A 唇中央（暈染唇用）
 uniform vec4 u_lip;    // rgb + 強度
+uniform float u_lipBlur; // 1 = 暈染唇（中間濃、往唇線變淡），0 = 滿塗
 uniform vec4 u_blush;
 uniform vec4 u_brow;
 uniform vec4 u_shadow;
@@ -43,22 +73,23 @@ void main() {
 
   if (m.a > 0.004 && u_shadow.a > 0.0) {
     // 眼影：正片疊底，越深的顏色越明顯
-    col = mix(col, col * mix(vec3(1.0), u_shadow.rgb, 0.85), m.a * u_shadow.a);
+    col = mix(col, col * mix(vec3(1.0), u_shadow.rgb, 0.8), m.a * u_shadow.a * 0.6);
   }
   if (m.b > 0.004 && u_brow.a > 0.0) {
     // 眉毛：只加深原本就有眉毛（比較暗）的地方，不會把皮膚塗成一塊
     float hair = 1.0 - smoothstep(0.25, 0.6, luma(col));
-    col = mix(col, col * u_brow.rgb * 1.6, m.b * u_brow.a * mix(0.35, 1.0, hair));
+    col = mix(col, col * u_brow.rgb * 1.6, m.b * u_brow.a * 0.7 * mix(0.3, 1.0, hair));
   }
   if (m.g > 0.004 && u_blush.a > 0.0) {
-    col = mix(col, softLight(col, u_blush.rgb), m.g * u_blush.a);
+    col = mix(col, softLight(col, u_blush.rgb), m.g * u_blush.a * 0.5);
   }
   if (m.r > 0.004 && u_lip.a > 0.0) {
-    // 口紅：換成口紅的顏色，亮度大部分跟著口紅（深色口紅才上得了色），
-    // 保留一部分原本的明暗變化，再疊一點正片疊底，唇紋才看得到
-    float l = luma(col);
-    vec3 tinted = mix(setLum(u_lip.rgb, mix(l, luma(u_lip.rgb), 0.75)), col * u_lip.rgb * 1.5, 0.3);
-    col = mix(col, tinted, m.r * u_lip.a);
+    // 口紅：色相、彩度換成口紅的；亮度只往口紅靠一點，保留唇紋和立體感
+    vec3 lab = rgb2oklab(col);
+    vec3 target = rgb2oklab(u_lip.rgb);
+    vec3 tinted = oklab2rgb(vec3(mix(lab.x, target.x, 0.5), mix(lab.yz, target.yz, 0.85)));
+    float center = clamp(texture(u_features, v_uv).a * 1.5, 0.0, 1.0);
+    col = mix(col, tinted, m.r * u_lip.a * 0.6 * mix(1.0, center, u_lipBlur));
   }
   outColor = vec4(clamp(col, 0.0, 1.0), c.a);
 }`

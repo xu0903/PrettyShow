@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useEditor } from '../../core/store.ts'
 import { defineTool, ORDER } from '../../core/tool.ts'
 import { IconHair } from '../../ui/icons.tsx'
+import { ColorRow } from '../../ui/ColorRow.tsx'
+import { colorName, type NamedColor } from '../../ui/colors.ts'
 import { Slider } from '../../ui/Slider.tsx'
 import { hexToRgb } from '../makeup/regions.ts'
 import { hairFragment } from '../makeup/shaders.ts'
@@ -16,7 +18,7 @@ export interface HairParams {
   amount: number // 0..100
 }
 
-const COLORS: { color: string; label: string }[] = [
+const COLORS: NamedColor[] = [
   { color: '#a67b5b', label: '奶茶棕' },
   { color: '#5b3a29', label: '黑茶' },
   { color: '#8a8d91', label: '霧感灰' },
@@ -81,7 +83,7 @@ export const hairTool = defineTool<HairParams>({
     if (!found || found.preview !== preview) return <p className="beauty-status">正在找頭髮…</p>
     if (!found.ok) return <p className="beauty-status">這張照片裡找不到頭髮</p>
 
-    const label = COLORS.find((c) => c.color === params.color)?.label ?? ''
+    const withColor = (color: string) => ({ color, amount: params.amount || PICK_AMOUNT })
     return (
       <div className="beauty-panel">
         <Slider
@@ -92,19 +94,13 @@ export const hairTool = defineTool<HairParams>({
           onChange={(v) => onChange({ ...params, amount: v })}
           onCommit={(v) => onCommit({ ...params, amount: v })}
         />
-        <div className="swatch-row">
-          {COLORS.map((c) => (
-            <button
-              key={c.color}
-              className="swatch"
-              style={{ background: c.color }}
-              aria-label={c.label}
-              aria-pressed={params.color === c.color && params.amount > 0}
-              onClick={() => onCommit({ color: c.color, amount: params.amount || PICK_AMOUNT })}
-            />
-          ))}
-        </div>
-        <p className="brush-hint">{params.amount > 0 ? `目前：${label}` : '選一個顏色開始染髮'}</p>
+        <ColorRow
+          colors={COLORS}
+          value={params.amount > 0 ? params.color : null}
+          onPick={(c) => onCommit(withColor(c))}
+          onPreview={(c) => onChange(withColor(c))}
+        />
+        <p className="brush-hint">{params.amount > 0 ? `目前：${colorName(COLORS, params.color)}` : '選一個顏色開始染髮，最後的 ＋ 可以自己挑顏色'}</p>
       </div>
     )
   },

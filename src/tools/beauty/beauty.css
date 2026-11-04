@@ -26,6 +26,22 @@
   font-weight: 600;
 }
 
+/* 美妝：目前顏色的名字 + 唇妝方式 */
+.makeup-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 30px;
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.seg-small .seg-btn {
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
 /* 自動／手動切換 */
 .seg {
   display: flex;

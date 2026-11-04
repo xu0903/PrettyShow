@@ -86,30 +86,3 @@
   font-size: 12px;
   color: var(--text-dim);
 }
-
-/* 塗鴉筆的顏色 */
-.swatch-row {
-  display: flex;
-  gap: 10px;
-  padding: 2px 16px 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  touch-action: pan-x;
-}
-
-.swatch-row::-webkit-scrollbar {
-  display: none;
-}
-
-.swatch {
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgb(255 255 255 / 0.25);
-}
-
-.swatch[aria-pressed='true'] {
-  outline: 2.5px solid #fff;
-  outline-offset: 2px;
-}

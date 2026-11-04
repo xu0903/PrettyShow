@@ -1,0 +1,55 @@
+.swatch-row {
+  display: flex;
+  gap: 10px;
+  padding: 2px 16px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.swatch-row::-webkit-scrollbar {
+  display: none;
+}
+
+.swatch {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.25);
+}
+
+.swatch[aria-pressed='true'] {
+  outline: 2.5px solid #fff;
+  outline-offset: 2px;
+}
+
+/* 「自己挑」：彩虹圈，選了之後顯示選到的顏色 */
+.swatch-custom {
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  background: conic-gradient(#ff4d4d, #ffcc33, #4ddb6a, #33b3ff, #9966ff, #ff4dc4, #ff4d4d);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.swatch-custom span {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+/* 原生的調色盤欄位蓋滿整顆圓，點哪裡都會打開 */
+.swatch-custom input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}

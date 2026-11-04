@@ -3,6 +3,8 @@
 import { create } from 'zustand'
 import { defineTool, ORDER } from '../../core/tool.ts'
 import { FRAGMENT_HEADER } from '../../gl/pass.ts'
+import { ColorRow } from '../../ui/ColorRow.tsx'
+import type { NamedColor } from '../../ui/colors.ts'
 import { IconBrush } from '../../ui/icons.tsx'
 import { BrushControls } from '../brush/BrushControls.tsx'
 import { createBrushOverlay } from '../brush/BrushOverlay.tsx'
@@ -13,9 +15,20 @@ export interface DoodleParams {
   strokes: Stroke[]
 }
 
-const COLORS = ['#ffffff', '#111111', '#ff2f55', '#ff9500', '#ffd60a', '#34c759', '#32ade6', '#0a84ff', '#bf5af2', '#ff6fb5']
+const COLORS: NamedColor[] = [
+  { color: '#ffffff', label: '白' },
+  { color: '#111111', label: '黑' },
+  { color: '#ff2f55', label: '紅' },
+  { color: '#ff9500', label: '橘' },
+  { color: '#ffd60a', label: '黃' },
+  { color: '#34c759', label: '綠' },
+  { color: '#32ade6', label: '青' },
+  { color: '#0a84ff', label: '藍' },
+  { color: '#bf5af2', label: '紫' },
+  { color: '#ff6fb5', label: '粉' },
+]
 
-const useColor = create<{ color: string }>(() => ({ color: COLORS[2] }))
+const useColor = create<{ color: string }>(() => ({ color: COLORS[2].color }))
 
 const doodleFragment =
   FRAGMENT_HEADER +
@@ -59,22 +72,15 @@ export const doodleTool = defineTool<DoodleParams>({
     const color = useColor((s) => s.color)
     return (
       <div className="brush-panel">
-        <div className="swatch-row">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              className="swatch"
-              style={{ background: c }}
-              aria-label={c}
-              aria-pressed={color === c}
-              onClick={() => {
-                // 選顏色 = 要畫了，自動切回畫筆
-                useColor.setState({ color: c })
-                useBrush.getState().setErase(false)
-              }}
-            />
-          ))}
-        </div>
+        <ColorRow
+          colors={COLORS}
+          value={color}
+          onPick={(c) => {
+            // 選顏色 = 要畫了，自動切回畫筆
+            useColor.setState({ color: c })
+            useBrush.getState().setErase(false)
+          }}
+        />
         <BrushControls />
       </div>
     )

@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { defineTool, ORDER } from '../../core/tool.ts'
 import { IconLipstick } from '../../ui/icons.tsx'
+import { ColorRow } from '../../ui/ColorRow.tsx'
+import { colorName } from '../../ui/colors.ts'
 import { Slider } from '../../ui/Slider.tsx'
 import { detectFaces } from '../beauty/faces.ts'
 import { LOADING_TEXT, useFaceStatus } from '../beauty/useFaces.ts'
@@ -41,11 +43,12 @@ export const makeupTool = defineTool<MakeupParams>({
           fragment: makeupFragment,
           uniforms: {
             u_lip: uniform(p.lipColor, p.lip),
+            u_lipBlur: p.lipBlur ? 1 : 0,
             u_blush: uniform(p.blushColor, p.blush),
             u_brow: uniform(p.browColor, p.brow),
             u_shadow: uniform(p.shadowColor, p.shadow),
           },
-          textures: { u_regions: regions.makeup },
+          textures: { u_regions: regions.makeup, u_features: regions.features },
         },
       },
     ]
@@ -60,8 +63,8 @@ export const makeupTool = defineTool<MakeupParams>({
 
     const info = PARTS.find((x) => x.key === part)!
     const look = matchLook(params)
-    const chooseColor = (c: string) =>
-      onCommit({ ...params, [colorKey(part)]: c, [part]: params[part] || PICK_AMOUNT })
+    const withColor = (c: string) => ({ ...params, [colorKey(part)]: c, [part]: params[part] || PICK_AMOUNT })
+    const color = params[colorKey(part)]
 
     return (
       <div className="beauty-panel">
@@ -83,17 +86,24 @@ export const makeupTool = defineTool<MakeupParams>({
           onChange={(v) => onChange({ ...params, [part]: v })}
           onCommit={(v) => onCommit({ ...params, [part]: v })}
         />
-        <div className="swatch-row">
-          {info.colors.map((c) => (
-            <button
-              key={c}
-              className="swatch"
-              style={{ background: c }}
-              aria-label={c}
-              aria-pressed={params[colorKey(part)] === c && params[part] > 0}
-              onClick={() => chooseColor(c)}
-            />
-          ))}
+        <ColorRow
+          colors={info.colors}
+          value={params[part] > 0 ? color : null}
+          onPick={(c) => onCommit(withColor(c))}
+          onPreview={(c) => onChange(withColor(c))}
+        />
+        <div className="makeup-info">
+          <span>{params[part] > 0 ? colorName(info.colors, color) : '選一個顏色'}</span>
+          {part === 'lip' && (
+            <div className="seg seg-small">
+              <button className="seg-btn" aria-pressed={!!params.lipBlur} onClick={() => onCommit({ ...params, lipBlur: true })}>
+                暈染
+              </button>
+              <button className="seg-btn" aria-pressed={!params.lipBlur} onClick={() => onCommit({ ...params, lipBlur: false })}>
+                滿塗
+              </button>
+            </div>
+          )}
         </div>
         <div className="chip-row">
           {PARTS.map((x) => (

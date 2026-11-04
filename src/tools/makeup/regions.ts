@@ -1,7 +1,7 @@
 // 五官部位的遮罩：嘴唇、腮紅、眉毛、眼影、眼睛、眼下（黑眼圈）、牙齒。
 // 用臉部特徵點畫出每個部位，再依臉的大小羽化。每張照片只算一次（快取在預覽圖上），
 // 換顏色、調強度只改 shader 的參數，所以拖滑桿很順。
-// 打包成兩張 RGBA 貼圖：A = 嘴唇、腮紅、眉毛、眼影；B = 眼睛、眼下、牙齒、（空）
+// 打包成兩張 RGBA 貼圖：A = 嘴唇、腮紅、眉毛、眼影；B = 眼睛、眼下、牙齒、唇中央（暈染唇用）
 
 import type { Texture2DSource } from '../../gl/pass.ts'
 import { boxBlur, flipRowsRGBA } from '../../image/raster.ts'
@@ -28,7 +28,7 @@ const MASK_LONG = 1024
 export interface Regions {
   /** R 嘴唇、G 腮紅、B 眉毛、A 眼影 */
   makeup: Texture2DSource
-  /** R 眼睛、G 眼下、B 嘴巴裡面（牙齒） */
+  /** R 眼睛、G 眼下、B 嘴巴裡面（牙齒）、A 唇中央（越靠近上下唇交界越亮） */
   features: Texture2DSource
 }
 
@@ -133,6 +133,17 @@ function build(faces: Point[][], W: number, H: number): Regions {
     eyes,
   )
   const teeth = mask((f) => ring(f, INNER_LIPS), 0.006)
+  // 唇中央：沿著上下唇交界畫一條粗線再大幅羽化，暈染唇的顏色集中在這裡、往唇線變淡
+  const lipCenter = mask(
+    (f) => {
+      ring(f, INNER_LIPS)
+      ctx.lineJoin = 'round'
+      ctx.strokeStyle = '#fff'
+      ctx.lineWidth = Math.max(2, dist(P(f, 0), P(f, 17)) * 0.55)
+      ctx.stroke()
+    },
+    0.035,
+  )
   canvas.width = canvas.height = 0
 
   const pack = (a: Uint8Array, b: Uint8Array, c: Uint8Array, d: Uint8Array | null): Uint8ClampedArray => {
@@ -148,7 +159,7 @@ function build(faces: Point[][], W: number, H: number): Regions {
   const id = nextId++
   return {
     makeup: { kind: '2d', key: `regions/makeup#${id}`, width: w, height: h, channels: 4, data: pack(lips, blush, brows, shadow) },
-    features: { kind: '2d', key: `regions/features#${id}`, width: w, height: h, channels: 4, data: pack(eye, under, teeth, null) },
+    features: { kind: '2d', key: `regions/features#${id}`, width: w, height: h, channels: 4, data: pack(eye, under, teeth, lipCenter) },
   }
 }
 

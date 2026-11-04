@@ -1,10 +1,16 @@
-// 美妝的參數、各部位可選的顏色、整組妝容
+// 美妝的參數、各部位可選的顏色、整組妝容。
+// 口紅色參考韓團近期流行（半透明的 MLBB、乾燥玫瑰、櫻桃玫瑰、蜜桃珊瑚、無花果、奶茶棕、霧感藕紫）
+// 和日本美妝雜誌（MAQUIA、VOCE）常見的くすみピンク、ピンクベージュ、アプリコット、テラコッタ。
+
+import type { NamedColor } from '../../ui/colors.ts'
 
 export type Part = 'lip' | 'blush' | 'brow' | 'shadow'
 
 export interface MakeupParams {
-  lip: number // 強度 0..100
+  lip: number // 強度 0..100（100 = 自然的上限）
   lipColor: string
+  /** 暈染唇：顏色集中在嘴唇中間、往唇線變淡（舊版存的參數沒有這一項 = 滿塗） */
+  lipBlur?: boolean
   blush: number
   blushColor: string
   brow: number
@@ -13,52 +19,101 @@ export interface MakeupParams {
   shadowColor: string
 }
 
-export const PARTS: { key: Part; label: string; colors: string[] }[] = [
-  { key: 'lip', label: '口紅', colors: ['#d9475a', '#e0566b', '#c96a6a', '#f27d7d', '#ff8a80', '#b5525e', '#a3283c', '#8c3b3b'] },
-  { key: 'blush', label: '腮紅', colors: ['#f7a1a8', '#f29a9a', '#ff9f8f', '#f5b0c0', '#e8907a', '#d98a7a'] },
-  { key: 'brow', label: '眉毛', colors: ['#5a4636', '#6b5442', '#7a5c45', '#3e2c22', '#2e2520'] },
-  { key: 'shadow', label: '眼影', colors: ['#e3b5a4', '#c9a28a', '#d4a0a8', '#b08070', '#8c5a46', '#3b2f33'] },
+export const LIP_COLORS: NamedColor[] = [
+  // 韓系
+  { color: '#c97b7e', label: 'MLBB 玫瑰' },
+  { color: '#b5676c', label: '乾燥玫瑰' },
+  { color: '#c8404f', label: '櫻桃玫瑰' },
+  { color: '#e8836f', label: '蜜桃珊瑚' },
+  { color: '#9e5560', label: '無花果' },
+  { color: '#b87d6b', label: '奶茶棕' },
+  { color: '#a9727f', label: '霧感藕紫' },
+  // 日系
+  { color: '#d08a8f', label: 'くすみピンク' },
+  { color: '#d9a09a', label: 'ピンクベージュ' },
+  { color: '#e4956f', label: 'アプリコット' },
+  { color: '#b8634d', label: 'テラコッタ' },
+  { color: '#9a5a58', label: 'ローズブラウン' },
+]
+
+export const BLUSH_COLORS: NamedColor[] = [
+  { color: '#f4a38c', label: '蜜桃' },
+  { color: '#e8949f', label: '玫瑰' },
+  { color: '#f39a83', label: '珊瑚' },
+  { color: '#cfa6d8', label: '薰衣草' },
+  { color: '#f1a77e', label: '杏桃' },
+  { color: '#d9a0a6', label: '煙燻粉' },
+]
+
+export const BROW_COLORS: NamedColor[] = [
+  { color: '#6b5442', label: '灰棕' },
+  { color: '#7a5c45', label: '淺棕' },
+  { color: '#5a4636', label: '深棕' },
+  { color: '#3e2c22', label: '黑棕' },
+]
+
+export const SHADOW_COLORS: NamedColor[] = [
+  { color: '#e3b5a4', label: '裸粉' },
+  { color: '#d4a0a8', label: '玫瑰粉' },
+  { color: '#c9a28a', label: '奶茶' },
+  { color: '#d9b38c', label: '香檳金' },
+  { color: '#b8a0c8', label: '冷調紫' },
+  { color: '#8c5a46', label: '大地棕' },
+  { color: '#3b2f33', label: '煙燻黑' },
+]
+
+export const PARTS: { key: Part; label: string; colors: NamedColor[] }[] = [
+  { key: 'lip', label: '口紅', colors: LIP_COLORS },
+  { key: 'blush', label: '腮紅', colors: BLUSH_COLORS },
+  { key: 'brow', label: '眉毛', colors: BROW_COLORS },
+  { key: 'shadow', label: '眼影', colors: SHADOW_COLORS },
 ]
 
 export const colorKey = (part: Part) => `${part}Color` as const
 
 export const NO_MAKEUP: MakeupParams = {
   lip: 0,
-  lipColor: PARTS[0].colors[0],
+  lipColor: LIP_COLORS[0].color,
+  lipBlur: true,
   blush: 0,
-  blushColor: PARTS[1].colors[0],
+  blushColor: BLUSH_COLORS[0].color,
   brow: 0,
-  browColor: PARTS[2].colors[0],
+  browColor: BROW_COLORS[0].color,
   shadow: 0,
-  shadowColor: PARTS[3].colors[0],
+  shadowColor: SHADOW_COLORS[0].color,
 }
 
 /** 整組妝容：一次設定四個部位 */
 export const LOOKS: { id: string; label: string; params: MakeupParams }[] = [
   {
     id: 'natural',
-    label: '自然',
-    params: { lip: 35, lipColor: '#c96a6a', blush: 25, blushColor: '#f29a9a', brow: 20, browColor: '#5a4636', shadow: 15, shadowColor: '#c9a28a' },
+    label: '素顏感',
+    params: { lip: 55, lipColor: '#c97b7e', lipBlur: true, blush: 35, blushColor: '#f4a38c', brow: 30, browColor: '#6b5442', shadow: 20, shadowColor: '#e3b5a4' },
   },
   {
     id: 'korean',
-    label: '韓系',
-    params: { lip: 50, lipColor: '#e0566b', blush: 30, blushColor: '#f7a1a8', brow: 15, browColor: '#6b5442', shadow: 25, shadowColor: '#e3b5a4' },
+    label: '韓系暈染',
+    params: { lip: 75, lipColor: '#c8404f', lipBlur: true, blush: 40, blushColor: '#e8949f', brow: 25, browColor: '#6b5442', shadow: 30, shadowColor: '#d4a0a8' },
+  },
+  {
+    id: 'mlbb',
+    label: '乾燥玫瑰',
+    params: { lip: 70, lipColor: '#b5676c', lipBlur: false, blush: 30, blushColor: '#d9a0a6', brow: 35, browColor: '#5a4636', shadow: 35, shadowColor: '#c9a28a' },
   },
   {
     id: 'japanese',
-    label: '日系',
-    params: { lip: 40, lipColor: '#f27d7d', blush: 45, blushColor: '#ff9f8f', brow: 15, browColor: '#7a5c45', shadow: 25, shadowColor: '#d4a0a8' },
+    label: '日系透明感',
+    params: { lip: 65, lipColor: '#d08a8f', lipBlur: true, blush: 50, blushColor: '#cfa6d8', brow: 25, browColor: '#7a5c45', shadow: 30, shadowColor: '#b8a0c8' },
   },
   {
-    id: 'western',
-    label: '歐美',
-    params: { lip: 80, lipColor: '#a3283c', blush: 30, blushColor: '#e8907a', brow: 40, browColor: '#3e2c22', shadow: 45, shadowColor: '#8c5a46' },
+    id: 'apricot',
+    label: '日系杏桃',
+    params: { lip: 65, lipColor: '#e4956f', lipBlur: false, blush: 50, blushColor: '#f1a77e', brow: 25, browColor: '#7a5c45', shadow: 35, shadowColor: '#d9b38c' },
   },
   {
     id: 'smoky',
     label: '煙燻',
-    params: { lip: 35, lipColor: '#b5525e', blush: 15, blushColor: '#d98a7a', brow: 40, browColor: '#2e2520', shadow: 60, shadowColor: '#3b2f33' },
+    params: { lip: 60, lipColor: '#9a5a58', lipBlur: false, blush: 20, blushColor: '#d9a0a6', brow: 45, browColor: '#3e2c22', shadow: 70, shadowColor: '#3b2f33' },
   },
 ]
 
