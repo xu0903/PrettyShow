@@ -1,0 +1,110 @@
+/* ---- 照片上的筆刷操作層 ---- */
+.brush-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  touch-action: none;
+}
+
+.brush-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ---- 面板：畫筆／橡皮擦 + 大小 ---- */
+.brush-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 14px;
+}
+
+.brush-modes {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.brush-mode {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 32px;
+  border-radius: 9px;
+  color: var(--text-dim);
+}
+
+.brush-mode svg {
+  width: 20px;
+  height: 20px;
+}
+
+.brush-mode[aria-pressed='true'] {
+  color: #fff;
+  background: var(--accent);
+}
+
+.brush-size {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.brush-size-label {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.brush-size .slider {
+  flex: 1;
+}
+
+/* 筆刷工具的面板：上面一排選項，下面控制列 */
+.brush-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0 8px;
+}
+
+.brush-hint {
+  margin: 0;
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* 塗鴉筆的顏色 */
+.swatch-row {
+  display: flex;
+  gap: 10px;
+  padding: 2px 16px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.swatch-row::-webkit-scrollbar {
+  display: none;
+}
+
+.swatch {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.25);
+}
+
+.swatch[aria-pressed='true'] {
+  outline: 2.5px solid #fff;
+  outline-offset: 2px;
+}

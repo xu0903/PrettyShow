@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   croppedSize,
+  croppedToSource,
   DEFAULT_CROP,
   displayToSource,
   fitAspect,
@@ -54,6 +55,19 @@ describe('旋轉與翻轉', () => {
     const before = displayToSource(0.1, 0.2, p)
     const after = displayToSource(r.x, r.y + r.h, rotateLeft(p, size))
     close(after, before)
+  })
+})
+
+describe('croppedToSource', () => {
+  it('裁切後畫面的左上角 = 裁切框的左上角', () => {
+    const p: CropParams = { ...DEFAULT_CROP, rect: { x: 0.2, y: 0.1, w: 0.5, h: 0.5 } }
+    const s = croppedToSource(p, { x: 0, y: 0 })
+    close([s.x, s.y], [0.2, 0.1])
+  })
+  it('往左轉之後，畫面左下角是原圖左上角', () => {
+    const p = rotateLeft(DEFAULT_CROP, size)
+    const s = croppedToSource(p, { x: 0, y: 1 })
+    close([s.x, s.y], [0, 0])
   })
 })
 

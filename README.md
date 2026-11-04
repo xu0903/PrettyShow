@@ -40,3 +40,9 @@ push 到 `main` 後，GitHub Actions 會自動建置並部署到 GitHub Pages：
 1. 在 `src/tools/<名稱>/` 寫好工具模組（`defineTool`），用 `placement` 指定放在哪個編輯器（`beautify` 圖片美化、`portrait` 人像美容）的第幾個位置。
 2. 在 `src/tools/index.ts` 註冊。
 3. 如果 `src/tools/upcoming.tsx` 裡有它的「即將推出」佔位，刪掉那一項。
+
+## 筆刷工具
+
+- 共用模組在 `src/tools/brush/`：`createBrushOverlay` 處理手指塗抹、兩指縮放、座標換算；`BrushControls` 是畫筆／橡皮擦和大小。
+- 筆跡以「原圖座標」存在編輯參數裡（`Stroke`），渲染時才依解析度畫成遮罩（`strokeTexture`），匯出原圖一樣清楚。
+- 會改變幾何的工具（裁切）提供 `mapToSource`，筆刷就能把畫面上的位置換算回原圖。

@@ -16,16 +16,23 @@ export interface Texture3DSource {
 }
 
 /**
- * 單通道 2D 貼圖（例如美顏的皮膚遮罩），以 0..1 的 uv 取樣，和輸出解析度無關。
+ * 2D 貼圖（例如美顏的皮膚遮罩、塗鴉筆跡），以 0..1 的 uv 取樣，和輸出解析度無關。
  * 資料的第一列是圖片的「最下面」一列，和 GL 的座標慣例一致。
  */
 export interface Texture2DSource {
   kind: '2d'
   key: string
+  /**
+   * 同一個 slot 只保留最新的一張：內容一直變的貼圖（例如邊畫邊更新的筆刷遮罩）
+   * 換新的 key 時，舊的會被刪掉，GPU 記憶體才不會越用越多。
+   */
+  slot?: string
   width: number
   height: number
-  /** R8，長度 width × height */
-  data: Uint8Array
+  /** 1 = 單通道 R8（預設），4 = RGBA8（不預乘透明度） */
+  channels?: 1 | 4
+  /** 長度 width × height × channels */
+  data: Uint8Array | Uint8ClampedArray
 }
 
 export interface RenderPass {

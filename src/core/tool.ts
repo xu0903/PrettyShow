@@ -23,6 +23,12 @@ export interface PassContext {
   photo?: LoadedPhoto
 }
 
+/** 0..1 的座標，原點在左上角 */
+export interface Point {
+  x: number
+  y: number
+}
+
 /** prepare 時的環境資訊 */
 export interface PrepareContext {
   photo?: LoadedPhoto
@@ -36,7 +42,10 @@ export interface GpuStep {
 
 /** 建議的順序區間（同一個工具的不同步驟可以放在不同區間） */
 export const ORDER = {
-  retouch: 50, // 美顏：在裁切之前，座標和原圖一致，臉部位置才對得上
+  // 以下三個都在裁切之前，座標和原圖一致，臉部位置、筆跡才對得上
+  heal: 40, // 消除筆、祛痘祛斑：先修掉瑕疵
+  retouch: 50, // 美顏：磨皮、美白
+  paint: 60, // 馬賽克、塗鴉筆
   geometry: 100, // 裁切、旋轉、翻轉
   color: 200, // 亮度、對比、色溫…
   filter: 300, // LUT 濾鏡
@@ -85,6 +94,13 @@ export interface EditTool<P> {
   Panel: ComponentType<ToolPanelProps<P>>
   /** 面板打開時疊在照片上的操作層；有操作層時照片區的縮放手勢會暫停 */
   Overlay?: ComponentType<ToolOverlayProps<P>>
+  /** 有操作層時仍然允許「兩指」縮放、拖動照片（筆刷類工具：一指畫、兩指移動） */
+  overlayZoom?: boolean
+  /**
+   * 會改變畫面幾何的工具（裁切、旋轉）提供：畫面上看到的點 → 這個工具處理之前的點。
+   * 筆刷工具用它把手指位置換算回原圖座標。
+   */
+  mapToSource?: (params: P, p: Point) => Point
 }
 
 /** 建立工具時用這個函式包起來，TypeScript 才能檢查 params 的型別 */

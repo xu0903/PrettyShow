@@ -1,4 +1,5 @@
 // 照片區的手勢：雙指縮放、單指拖曳（放大時）、雙擊切換放大。
+// 筆刷工具打開時改成「只認兩指」：一指留給畫筆，兩指縮放和拖動。
 // 直接修改 DOM 的 transform，不經過 React 狀態，拖動時才能維持 60fps。
 // s / tx / ty 是 effect 內部的區域變數，只在事件處理函式中修改，不會影響 render，
 // 所以關掉 react/immutability 的誤判。
@@ -26,12 +27,15 @@ const dist = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
  * @param targetRef    被縮放的元素（包住 canvas 的 stage）
  * @param resetKey     這個值改變時回到原始大小（例如換照片）
  * @param enabled      false 時停用手勢並回到原始大小（例如拖裁切框時）
+ * @param twoFingerOnly true 時單指不做任何事（不拖曳、不雙擊），也不搶走手指的事件，
+ *                     讓疊在照片上的筆刷可以收到單指的移動
  */
 export function usePinchZoom(
   containerRef: RefObject<HTMLElement | null>,
   targetRef: RefObject<HTMLElement | null>,
   resetKey: unknown,
   enabled = true,
+  twoFingerOnly = false,
 ): void {
   useEffect(() => {
     const el = containerRef.current
@@ -90,9 +94,9 @@ export function usePinchZoom(
     }
 
     const onDown = (e: PointerEvent) => {
-      el.setPointerCapture(e.pointerId)
+      if (!twoFingerOnly) el.setPointerCapture(e.pointerId)
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
-      tapStart = pointers.size === 1 ? { t: e.timeStamp, p: { x: e.clientX, y: e.clientY } } : null
+      tapStart = pointers.size === 1 && !twoFingerOnly ? { t: e.timeStamp, p: { x: e.clientX, y: e.clientY } } : null
       begin()
     }
 
@@ -111,7 +115,7 @@ export function usePinchZoom(
         tx += m.x - start.m.x
         ty += m.y - start.m.y
         apply()
-      } else if (s > 1) {
+      } else if (s > 1 && !twoFingerOnly) {
         tx = start.tx + (pts[0].x - start.m.x)
         ty = start.ty + (pts[0].y - start.m.y)
         clampPan()
@@ -164,5 +168,5 @@ export function usePinchZoom(
       el.removeEventListener('pointercancel', onUp)
       target.style.transform = ''
     }
-  }, [containerRef, targetRef, resetKey, enabled])
+  }, [containerRef, targetRef, resetKey, enabled, twoFingerOnly])
 }

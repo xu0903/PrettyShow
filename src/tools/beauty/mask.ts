@@ -1,6 +1,7 @@
 // 皮膚遮罩：用臉部特徵點畫出臉的範圍，挖掉眼睛、眉毛、嘴唇，再把邊緣模糊，
 // 讓磨皮只作用在皮膚上，也不會在臉的邊緣出現明顯的界線。
 
+import { boxBlur, canvasToMask } from '../../image/raster.ts'
 import { BROW_A, BROW_B, CHEEK_A, CHEEK_B, EYE_A, EYE_B, FACE_OVAL, LIPS } from './landmarks.ts'
 
 /** 正規化座標（0..1，原點左上） */
@@ -17,41 +18,6 @@ export function faceWidth(face: readonly Point[]): number {
   const a = face[CHEEK_A]
   const b = face[CHEEK_B]
   return Math.hypot(a.x - b.x, a.y - b.y)
-}
-
-/**
- * 盒狀模糊（水平再垂直，原地修改）。跑三次就很接近高斯模糊。
- * 用滑動視窗累加，每個像素的成本和半徑無關。
- */
-export function boxBlur(data: Uint8Array, width: number, height: number, radius: number): void {
-  const r = Math.max(0, Math.round(radius))
-  if (r === 0) return
-  const line = new Float32Array(Math.max(width, height))
-  const pass = (count: number, length: number, at: (i: number, j: number) => number) => {
-    for (let i = 0; i < count; i++) {
-      for (let j = 0; j < length; j++) line[j] = data[at(i, j)]
-      // 邊界外視為和邊界的像素相同
-      let sum = line[0] * (r + 1)
-      for (let j = 1; j <= r; j++) sum += line[Math.min(j, length - 1)]
-      for (let j = 0; j < length; j++) {
-        data[at(i, j)] = Math.round(sum / (2 * r + 1))
-        sum += line[Math.min(j + r + 1, length - 1)] - line[Math.max(j - r, 0)]
-      }
-    }
-  }
-  pass(height, width, (y, x) => y * width + x)
-  pass(width, height, (x, y) => y * width + x)
-}
-
-/** 把畫布的內容轉成單通道、上下顛倒（GL 的第一列是最下面） */
-export function canvasToMask(pixels: Uint8ClampedArray, width: number, height: number): Uint8Array {
-  const out = new Uint8Array(width * height)
-  for (let y = 0; y < height; y++) {
-    const src = y * width * 4
-    const dst = (height - 1 - y) * width
-    for (let x = 0; x < width; x++) out[dst + x] = pixels[src + x * 4]
-  }
-  return out
 }
 
 /** 依照片比例決定遮罩尺寸 */

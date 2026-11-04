@@ -39,15 +39,15 @@ export function PhotoViewport() {
 
   const activeTool = photo && activeToolId ? getTool(activeToolId) : undefined
   const Overlay = activeTool?.Overlay
-  // 有操作層時，照片區的手勢交給操作層
-  const gestures = !Overlay
+  // 有操作層時，照片區的手勢交給操作層；筆刷類的操作層仍保留兩指縮放
+  const zoomable = !Overlay || !!activeTool?.overlayZoom
 
-  usePinchZoom(containerRef, stageRef, photo, gestures)
+  usePinchZoom(containerRef, stageRef, photo, zoomable, !!Overlay)
   useLongPress(
     containerRef,
     () => setComparing(true),
     () => setComparing(false),
-    gestures,
+    !Overlay,
   )
 
   const frame = useRef(0)
@@ -125,7 +125,8 @@ export function PhotoViewport() {
     return () => ro.disconnect()
   }, [])
 
-  const pad = Overlay ? OVERLAY_PADDING : PADDING
+  // 裁切框的把手需要多一點空間；筆刷不需要
+  const pad = Overlay && !activeTool?.overlayZoom ? OVERLAY_PADDING : PADDING
   const stageSize =
     outputSize && boxSize && boxSize.width > pad * 2
       ? containSize(outputSize, { width: boxSize.width - pad * 2, height: boxSize.height - pad * 2 })

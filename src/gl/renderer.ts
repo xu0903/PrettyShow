@@ -24,6 +24,8 @@ export class Renderer {
   private gl!: WebGL2RenderingContext
   private programs = new Map<string, Program>()
   private textures = new Map<string, WebGLTexture>()
+  /** slot → 目前在用的貼圖 key */
+  private slots = new Map<string, string>()
   private sourceTexture: WebGLTexture | null = null
   private sourceSize: Size = { width: 1, height: 1 }
   private targets: RenderTarget[] = []
@@ -64,6 +66,7 @@ export class Renderer {
       this.lost = false
       this.programs.clear()
       this.textures.clear()
+      this.slots.clear()
       this.targets = []
       this.kept.clear()
       this.sourceTexture = null
@@ -179,6 +182,7 @@ export class Renderer {
     if (this.sourceTexture) gl.deleteTexture(this.sourceTexture)
     this.programs.clear()
     this.textures.clear()
+    this.slots.clear()
     this.targets = []
     this.kept.clear()
     this.sourceTexture = null
@@ -231,6 +235,16 @@ export class Renderer {
   private texture(src: Texture3DSource | Texture2DSource): WebGLTexture {
     const cached = this.textures.get(src.key)
     if (cached) return cached
+    if (src.kind === '2d' && src.slot) {
+      // 同一個 slot 的舊貼圖用不到了
+      const old = this.slots.get(src.slot)
+      const oldTex = old !== undefined ? this.textures.get(old) : undefined
+      if (old !== undefined && oldTex) {
+        this.gl.deleteTexture(oldTex)
+        this.textures.delete(old)
+      }
+      this.slots.set(src.slot, src.key)
+    }
     const t = src.kind === '3d' ? this.upload3d(src) : this.upload2d(src)
     this.textures.set(src.key, t)
     return t
@@ -242,7 +256,19 @@ export class Renderer {
     gl.bindTexture(gl.TEXTURE_2D, t)
     // 單通道資料每列不一定是 4 的倍數
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, src.width, src.height, 0, gl.RED, gl.UNSIGNED_BYTE, src.data)
+    const rgba = src.channels === 4
+    const data = src.data instanceof Uint8ClampedArray ? new Uint8Array(src.data.buffer, src.data.byteOffset, src.data.length) : src.data
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      rgba ? gl.RGBA8 : gl.R8,
+      src.width,
+      src.height,
+      0,
+      rgba ? gl.RGBA : gl.RED,
+      gl.UNSIGNED_BYTE,
+      data,
+    )
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4)
     setSampling(gl)
     return t

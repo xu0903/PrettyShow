@@ -162,6 +162,12 @@ export function resizeRect(r: Rect, handle: Handle, dx: number, dy: number, rati
   return { x, y, w, h }
 }
 
+/** 裁切後畫面上的點（0..1）→ 原圖的點：先放回整張顯示空間，再還原翻轉、旋轉 */
+export function croppedToSource(p: CropParams, pt: { x: number; y: number }): { x: number; y: number } {
+  const [x, y] = displayToSource(p.rect.x + pt.x * p.rect.w, p.rect.y + pt.y * p.rect.h, p)
+  return { x, y }
+}
+
 /**
  * 顯示空間的點 → 原圖的點（shader 用同樣的算法，這裡給測試驗證用）。
  * 先還原翻轉，再還原旋轉。

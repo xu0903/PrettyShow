@@ -2,6 +2,7 @@
 // 磨皮：雙邊濾波（只平均顏色相近的鄰居，所以痘痘、細紋被抹平，但五官和輪廓的邊緣保留），
 // 為了速度拆成水平、垂直兩次；遮罩以外的像素直接跳過。
 // 美白：提亮中間調、稍微去黃，只作用在膚色上。
+// 手動模式：用手指塗出來的遮罩（u_brushSmooth、u_brushWhiten），和自動找到的臉取較大的那個。
 
 import { FRAGMENT_HEADER } from '../../gl/pass.ts'
 
@@ -21,6 +22,7 @@ export const bilateralFragment =
   FRAGMENT_HEADER +
   /* glsl */ `
 uniform sampler2D u_mask;
+uniform sampler2D u_brushSmooth;
 uniform vec2 u_dir;      // (1,0) 水平或 (0,1) 垂直
 uniform float u_radius;  // 半徑（px）
 uniform float u_sigma;   // 顏色差多少以內才算「相近」
@@ -29,7 +31,7 @@ const int TAPS = 10;
 
 void main() {
   vec4 center = texture(u_image, v_uv);
-  if (texture(u_mask, v_uv).r < 0.004) {
+  if (max(texture(u_mask, v_uv).r, texture(u_brushSmooth, v_uv).r) < 0.004) {
     outColor = center;
     return;
   }
@@ -62,6 +64,8 @@ function mixFragment(withBase: boolean): string {
     SKIN_GLSL +
     /* glsl */ `
 uniform sampler2D u_mask;
+uniform sampler2D u_brushSmooth;
+uniform sampler2D u_brushWhiten;
 uniform float u_smooth;    // 0..1
 uniform float u_whiten;    // 0..1
 #ifdef WITH_BASE
@@ -81,11 +85,14 @@ void main() {
   float mask = texture(u_mask, v_uv).r;
   float skin = skinLikelihood(base.rgb);
 
-  // 磨皮：遮罩內、而且像膚色的地方才混入（瀏海、眼鏡框不會被抹掉）
-  vec3 c = mix(base.rgb, blurred, mask * mix(0.4, 1.0, skin) * u_smooth);
+  float bs = texture(u_brushSmooth, v_uv).r;
+  float bw = texture(u_brushWhiten, v_uv).r;
+
+  // 磨皮：遮罩內、而且像膚色的地方才混入（瀏海、眼鏡框不會被抹掉）；手動塗的地方照塗的範圍
+  vec3 c = mix(base.rgb, blurred, max(mask * mix(0.4, 1.0, skin) * u_smooth, bs * 0.85));
 
   // 美白：臉上全力，臉以外的膚色（脖子、手）也提亮一些，顏色才接得起來
-  float w = u_whiten * skin * max(mask, 0.6);
+  float w = max(u_whiten * skin * max(mask, 0.6), bw * 0.75);
   vec3 lifted = 1.0 - pow(1.0 - c, vec3(1.0 + 0.9 * w));
   lifted = mix(lifted, vec3(dot(lifted, LUMA)), 0.15 * w);
   outColor = vec4(lifted, base.a);
