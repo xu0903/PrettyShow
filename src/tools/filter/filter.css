@@ -1,0 +1,62 @@
+.filter-panel {
+  padding-top: 14px;
+}
+
+/* 固定高度，選了濾鏡、出現滑桿時面板不會跳動 */
+.filter-slider {
+  height: 52px;
+}
+
+.filter-hint {
+  margin: 0;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.filter-row {
+  display: flex;
+  gap: 10px;
+  padding: 4px 14px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-thumb {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.filter-thumb img,
+.filter-thumb-empty {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--surface-2);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.filter-thumb[aria-pressed='true'] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.filter-thumb[aria-pressed='true'] img,
+.filter-thumb[aria-pressed='true'] .filter-thumb-empty {
+  outline-color: var(--accent);
+}

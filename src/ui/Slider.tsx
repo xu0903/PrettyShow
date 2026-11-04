@@ -8,7 +8,7 @@ interface SliderProps {
   value: number
   min: number
   max: number
-  /** 雙擊回到的值；也是雙向滑桿的中心 */
+  /** 雙擊回到的值 */
   defaultValue?: number
   onChange: (v: number) => void
   onCommit: (v: number) => void
@@ -24,10 +24,11 @@ export function Slider({ value, min, max, defaultValue = 0, onChange, onCommit, 
 
   const clamp = (v: number) => Math.round(Math.min(max, Math.max(min, v)))
   const pct = (v: number) => ((v - min) / (max - min)) * 100
-  const bipolar = min < defaultValue && defaultValue < max
+  // 範圍跨過 0（例如 -100..100）就是雙向滑桿：從 0 往左右填色，正值顯示 +
+  const bipolar = min < 0 && max > 0
 
   // 填色從中心（雙向）或最左邊開始
-  const from = bipolar ? pct(defaultValue) : 0
+  const from = bipolar ? pct(0) : 0
   const to = pct(value)
   const fillStyle = { left: `${Math.min(from, to)}%`, width: `${Math.abs(to - from)}%` }
 

@@ -1,7 +1,7 @@
 {
   "name": "prettyshow",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "lint": "oxlint",
-    "icons": "node scripts/split-icons.mjs"
+    "icons": "node scripts/split-icons.mjs",
+    "luts": "node scripts/gen-luts.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.3.0",

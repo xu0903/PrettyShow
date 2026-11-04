@@ -79,3 +79,26 @@ export const IconCrop = () => (
     <path d="M2 6h14a2 2 0 0 1 2 2v14" />
   </Svg>
 )
+
+export const IconRotateLeft = () => (
+  <Svg>
+    <path d="M3 4v5h5" />
+    <path d="M3.5 9A8.5 8.5 0 1 1 6 16.5" />
+  </Svg>
+)
+
+export const IconFlipH = () => (
+  <Svg>
+    <path d="M12 3v18" strokeDasharray="2 2.5" />
+    <path d="M9 7 4 17h5z" />
+    <path d="m15 7 5 10h-5z" />
+  </Svg>
+)
+
+export const IconFlipV = () => (
+  <Svg>
+    <path d="M3 12h18" strokeDasharray="2 2.5" />
+    <path d="M7 9 17 4v5z" />
+    <path d="m7 15 10 5v-5z" />
+  </Svg>
+)

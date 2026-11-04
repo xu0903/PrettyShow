@@ -8,7 +8,12 @@ import { useEffect, useRef, type RefObject } from 'react'
 const HOLD_MS = 300
 const MAX_MOVE = 10
 
-export function useLongPress(ref: RefObject<HTMLElement | null>, onStart: () => void, onEnd: () => void): void {
+export function useLongPress(
+  ref: RefObject<HTMLElement | null>,
+  onStart: () => void,
+  onEnd: () => void,
+  enabled = true,
+): void {
   // callback 放在 ref：長按開始後畫面會更新，若 effect 因此重新註冊，會把進行中的長按取消掉
   const handlers = useRef({ onStart, onEnd })
   useEffect(() => {
@@ -17,7 +22,7 @@ export function useLongPress(ref: RefObject<HTMLElement | null>, onStart: () => 
 
   useEffect(() => {
     const el = ref.current
-    if (!el) return
+    if (!el || !enabled) return
     const pointers = new Set<number>()
     let timer: ReturnType<typeof setTimeout> | undefined
     let origin: { x: number; y: number } | null = null
@@ -62,5 +67,5 @@ export function useLongPress(ref: RefObject<HTMLElement | null>, onStart: () => 
       el.removeEventListener('pointerup', onUp)
       el.removeEventListener('pointercancel', onUp)
     }
-  }, [ref])
+  }, [ref, enabled])
 }

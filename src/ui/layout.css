@@ -161,3 +161,46 @@
   background: rgb(0 0 0 / 0.6);
   pointer-events: none;
 }
+
+/* ---- 共用：可以左右滑動的一排選項按鈕（調整項目、裁切比例…） ---- */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  position: relative;
+  flex: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--text-dim);
+  background: var(--surface-2);
+}
+
+.chip[aria-pressed='true'] {
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
+.chip-dot {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.chip[aria-pressed='true'] .chip-dot {
+  background: #fff;
+}

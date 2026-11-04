@@ -4,6 +4,12 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.4.0': [
+    '新增「濾鏡」：暖陽、冷調、底片、日系、褪色、電影、復古、黑白，縮圖直接用你的照片預覽',
+    '每款濾鏡都可以調強度',
+    '新增「裁切」：自由、原始、1:1、4:5、9:16、3:4、16:9，拖角落或邊調整大小、拖框內移動',
+    '可以往左旋轉、水平翻轉、垂直翻轉',
+  ],
   '0.3.0': [
     '新增「調整」：亮度、對比、飽和度、色溫、色調、銳化、暈影',
     '滑桿在整條上任何位置左右滑都能調，雙擊滑桿回到 0',

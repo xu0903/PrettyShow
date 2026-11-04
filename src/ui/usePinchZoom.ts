@@ -25,16 +25,18 @@ const dist = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y)
  * @param containerRef 接收手勢的區域（照片區）
  * @param targetRef    被縮放的元素（包住 canvas 的 stage）
  * @param resetKey     這個值改變時回到原始大小（例如換照片）
+ * @param enabled      false 時停用手勢並回到原始大小（例如拖裁切框時）
  */
 export function usePinchZoom(
   containerRef: RefObject<HTMLElement | null>,
   targetRef: RefObject<HTMLElement | null>,
   resetKey: unknown,
+  enabled = true,
 ): void {
   useEffect(() => {
     const el = containerRef.current
     const target = targetRef.current
-    if (!el || !target) return
+    if (!el || !target || !enabled) return
 
     let s = 1
     let tx = 0
@@ -162,5 +164,5 @@ export function usePinchZoom(
       el.removeEventListener('pointercancel', onUp)
       target.style.transform = ''
     }
-  }, [containerRef, targetRef, resetKey])
+  }, [containerRef, targetRef, resetKey, enabled])
 }

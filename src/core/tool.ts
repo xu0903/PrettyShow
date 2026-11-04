@@ -39,6 +39,12 @@ export interface ToolPanelProps<P> {
   onCommit: (params: P) => void
 }
 
+/** 疊在照片上的操作層（例如裁切框）收到的參數 */
+export interface ToolOverlayProps<P> extends ToolPanelProps<P> {
+  /** 照片在畫面上顯示的尺寸（CSS px） */
+  stageSize: { width: number; height: number }
+}
+
 export interface EditTool<P> {
   id: string
   label: string
@@ -48,10 +54,22 @@ export interface EditTool<P> {
   defaultParams: P
   /** 參數是預設值時，整個工具會被略過 */
   isIdentity: (params: P) => boolean
-  /** 產生 shader 步驟 */
+  /**
+   * 產生 shader 步驟。必須是同步的；需要的資源還沒準備好時可以先回傳空陣列，
+   * 等 prepare 完成後畫面會再重畫一次。
+   */
   steps?: (params: P, ctx: PassContext) => GpuStep[]
+  /** 非同步準備資源（下載 LUT、偵測臉部…），完成後 steps 才能產生完整的步驟 */
+  prepare?: (params: P) => Promise<void>
+  /**
+   * 這個工具的面板打開時，畫面改用這組參數顯示。
+   * 例如裁切時要看到整張照片，才能拖動裁切框。
+   */
+  viewParams?: (params: P) => P
   /** 下方工具列的操作面板 */
   Panel: ComponentType<ToolPanelProps<P>>
+  /** 面板打開時疊在照片上的操作層；有操作層時照片區的縮放手勢會暫停 */
+  Overlay?: ComponentType<ToolOverlayProps<P>>
 }
 
 /** 建立工具時用這個函式包起來，TypeScript 才能檢查 params 的型別 */

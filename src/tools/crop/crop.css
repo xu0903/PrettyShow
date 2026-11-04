@@ -1,0 +1,112 @@
+/* ---- 裁切框 ---- */
+.crop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* 框外變暗的陰影會超出照片範圍，裁掉 */
+  overflow: hidden;
+  touch-action: none;
+}
+
+.crop-box {
+  position: absolute;
+  border: 1.5px solid #fff;
+  /* 框外變暗 */
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.55);
+  cursor: move;
+}
+
+.crop-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, transparent calc(33.33% - 0.5px), rgb(255 255 255 / 0.45) calc(33.33% - 0.5px), rgb(255 255 255 / 0.45) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px), transparent calc(66.66% - 0.5px), rgb(255 255 255 / 0.45) calc(66.66% - 0.5px), rgb(255 255 255 / 0.45) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(33.33% - 0.5px), rgb(255 255 255 / 0.45) calc(33.33% - 0.5px), rgb(255 255 255 / 0.45) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px), transparent calc(66.66% - 0.5px), rgb(255 255 255 / 0.45) calc(66.66% - 0.5px), rgb(255 255 255 / 0.45) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px));
+}
+
+/* 把手：可以按的範圍（44px）比看得到的 L 形角大很多 */
+.crop-handle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+}
+
+.crop-handle-nw { left: 0; top: 0; }
+.crop-handle-ne { left: 100%; top: 0; }
+.crop-handle-sw { left: 0; top: 100%; }
+.crop-handle-se { left: 100%; top: 100%; }
+.crop-handle-n { left: 50%; top: 0; }
+.crop-handle-s { left: 50%; top: 100%; }
+.crop-handle-w { left: 0; top: 50%; }
+.crop-handle-e { left: 100%; top: 50%; }
+
+/* 看得到的角：粗的 L 形 */
+.crop-handle-nw::after,
+.crop-handle-ne::after,
+.crop-handle-sw::after,
+.crop-handle-se::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 3.5px solid #fff;
+}
+
+.crop-handle-nw::after { left: 20px; top: 20px; border-right: none; border-bottom: none; }
+.crop-handle-ne::after { right: 20px; top: 20px; border-left: none; border-bottom: none; }
+.crop-handle-sw::after { left: 20px; bottom: 20px; border-right: none; border-top: none; }
+.crop-handle-se::after { right: 20px; bottom: 20px; border-left: none; border-top: none; }
+
+/* 看得到的邊把手：短的粗線 */
+.crop-handle-n::after,
+.crop-handle-s::after,
+.crop-handle-w::after,
+.crop-handle-e::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  border-radius: 2px;
+  background: #fff;
+}
+
+.crop-handle-n::after,
+.crop-handle-s::after { width: 22px; height: 4px; }
+.crop-handle-w::after,
+.crop-handle-e::after { width: 4px; height: 22px; }
+
+/* ---- 面板 ---- */
+.crop-panel {
+  padding-top: 10px;
+}
+
+.crop-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 8px 8px;
+}
+
+.crop-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 64px;
+  height: 52px;
+  font-size: 11px;
+  color: var(--text-dim);
+  border-radius: 12px;
+}
+
+.crop-action:active:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.crop-reset {
+  font-size: 13px;
+  color: var(--text);
+}
