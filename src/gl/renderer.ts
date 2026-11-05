@@ -107,6 +107,24 @@ export class Renderer {
     this.sourceSize = { width: s.width, height: s.height }
   }
 
+  /**
+   * 換一張同樣尺寸的來源（相機預覽每一幀用）：沿用同一張貼圖，不重新建立。
+   * 尺寸變了就改用 setSource。
+   */
+  updateSource(source: TexImageSource, width: number, height: number): void {
+    if (!this.sourceTexture || this.sourceSize.width !== width || this.sourceSize.height !== height) {
+      this.setSource(source)
+      this.sourceSize = { width, height }
+      return
+    }
+    const gl = this.gl
+    this.source = source
+    gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture)
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source)
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
+  }
+
   /** 依序跑完所有步驟並畫到 canvas，回傳最終輸出的尺寸 */
   render(passes: readonly RenderPass[]): Size {
     if (this.isLost || !this.sourceTexture) return this.sourceSize

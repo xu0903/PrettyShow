@@ -1,0 +1,104 @@
+.camera {
+  position: relative;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+.camera-stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* 預覽畫面蓋滿螢幕（拍下來的是完整畫面，不會被裁） */
+.camera-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 前鏡頭像照鏡子一樣左右相反 */
+.camera-canvas.is-mirror {
+  transform: scaleX(-1);
+}
+
+.camera-video {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.camera-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 32px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ffcf99;
+}
+
+.camera-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: calc(var(--sat) + 4px) 8px 0;
+  background: linear-gradient(rgb(0 0 0 / 0.45), transparent);
+}
+
+.camera-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px 0 calc(16px + var(--sab));
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.6) 30%);
+}
+
+.camera-filters .chip {
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+
+.camera-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-top: 10px;
+}
+
+.camera-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 64px;
+  font-size: 11px;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.camera-side[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+.camera-shutter {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 5px rgb(255 255 255 / 0.35);
+}
+
+.camera-shutter:active:not(:disabled) {
+  transform: scale(0.94);
+}

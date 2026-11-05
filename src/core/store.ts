@@ -11,7 +11,7 @@ import { renderThumbnail } from './thumbnail.ts'
 import type { EditorMode } from './tool.ts'
 
 export type PhotoStatus = 'idle' | 'loading' | 'ready' | 'error'
-export type Screen = 'home' | 'editor'
+export type Screen = 'home' | 'editor' | 'collage' | 'camera' | 'ai'
 export type HomeTab = 'home' | 'gallery' | 'ai' | 'me'
 
 interface EditorState {
@@ -41,6 +41,9 @@ interface EditorState {
   /** 打開 App 時：搬移舊資料、讀圖庫，上次修到一半就直接回到編輯器 */
   init: () => Promise<void>
   setHomeTab: (tab: HomeTab) => void
+  /** 打開拼圖、相機、AI 這些獨立的畫面（回首頁用 goHome） */
+  setScreen: (screen: Screen) => void
+  goHome: () => void
   /** 選了新照片：建立草稿並打開編輯器；指定 toolId 就直接打開那個工具（首頁的捷徑） */
   openPhoto: (file: File, mode: EditorMode, toolId?: string) => Promise<void>
   /** 從圖庫打開草稿 */
@@ -180,6 +183,8 @@ export const useEditor = create<EditorState>((set, get) => {
     },
 
     setHomeTab: (homeTab) => set({ homeTab }),
+    setScreen: (screen) => set({ screen }),
+    goHome: () => set({ screen: 'home' }),
 
     openPhoto: async (file, mode, toolId) => {
       const token = beginOpen(mode)

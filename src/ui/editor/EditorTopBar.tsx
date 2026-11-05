@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import { exportPhoto, type ExportResult } from '../../core/export.ts'
+import { exportPhoto } from '../../core/export.ts'
 import { useEditor } from '../../core/store.ts'
-import { ExportSheet } from '../ExportSheet.tsx'
+import { startExport } from '../exportJob.ts'
 import { IconBack, IconRedo, IconUndo } from '../icons.tsx'
 
 // 編輯器頂部：返回首頁、復原、重做、儲存。打開工具時只留復原／重做，要先按 ✓ 或 ✕ 才能離開
@@ -13,18 +12,9 @@ export function EditorTopBar() {
   const undo = useEditor((s) => s.undo)
   const redo = useEditor((s) => s.redo)
   const closeEditor = useEditor((s) => s.closeEditor)
-  const [exportJob, setExportJob] = useState<Promise<ExportResult> | null>(null)
-
-  const startExport = () => {
+  const save = () => {
     const { photo, history } = useEditor.getState()
-    if (!photo) return
-    setExportJob(exportPhoto(photo, history.present))
-  }
-
-  const closeExport = () => {
-    // 關掉面板後釋放預覽圖的記憶體
-    exportJob?.then((r) => URL.revokeObjectURL(r.url)).catch(() => {})
-    setExportJob(null)
+    if (photo) startExport(exportPhoto(photo, history.present))
   }
 
   return (
@@ -47,13 +37,12 @@ export function EditorTopBar() {
         </div>
         <div className="ed-top-side is-right">
           {!inTool && (
-            <button className="ed-save" disabled={!hasPhoto} onClick={startExport}>
+            <button className="ed-save" disabled={!hasPhoto} onClick={save}>
               儲存
             </button>
           )}
         </div>
       </header>
-      {exportJob && <ExportSheet job={exportJob} onClose={closeExport} />}
     </>
   )
 }

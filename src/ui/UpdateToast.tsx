@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { APP_VERSION, changesSince } from '../version.ts'
+import { APP_VERSION, changesSince, compareVersions } from '../version.ts'
 
 const SEEN_KEY = 'prettyshow.seenVersion'
 
@@ -22,7 +22,10 @@ function checkVersion(): string | null {
     const seen = localStorage.getItem(SEEN_KEY)
     localStorage.setItem(SEEN_KEY, APP_VERSION)
     const existing = seen ?? (navigator.serviceWorker?.controller ? 'old' : null)
-    return existing !== null && existing !== APP_VERSION ? existing : null
+    // 只有版本「變新」才通知（退回舊版或版本號寫錯時不要跳）
+    if (existing === null) return null
+    const valid = /^\d+(\.\d+)*$/.test(existing)
+    return !valid || compareVersions(APP_VERSION, existing) > 0 ? existing : null
   } catch {
     // 讀不到儲存空間就不通知
     return null

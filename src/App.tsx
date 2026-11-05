@@ -3,12 +3,15 @@ import './tools/index.ts' // 註冊所有編輯工具
 import { useEditor } from './core/store.ts'
 import './ui/layout.css'
 import './ui/overlays.css'
+import { Camera } from './ui/camera/Camera.tsx'
+import { Collage } from './ui/collage/Collage.tsx'
 import { Editor } from './ui/editor/Editor.tsx'
 import { Home } from './ui/home/Home.tsx'
+import { ExportHost } from './ui/ExportHost.tsx'
 import { Toast } from './ui/Toast.tsx'
 import { UpdateToast } from './ui/UpdateToast.tsx'
 
-// 兩個畫面：首頁（分頁：首頁、圖庫、AI 修圖、我）和編輯器（圖片美化／人像美容）
+// 畫面：首頁（分頁：首頁、圖庫、AI 修圖、我）、編輯器（圖片美化／人像美容）、相機、拼圖
 export default function App() {
   const screen = useEditor((s) => s.screen)
 
@@ -19,7 +22,11 @@ export default function App() {
 
   return (
     <>
-      {screen === 'home' ? <Home /> : <Editor />}
+      {screen === 'home' && <Home />}
+      {screen === 'editor' && <Editor />}
+      {screen === 'camera' && <Camera />}
+      {screen === 'collage' && <Collage />}
+      <ExportHost />
       <Toast />
       <UpdateToast />
     </>

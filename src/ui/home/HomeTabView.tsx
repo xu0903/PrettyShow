@@ -53,6 +53,7 @@ export function HomeTabView() {
   const gallery = useEditor((s) => s.gallery)
   const openDraft = useEditor((s) => s.openDraft)
   const setTab = useEditor((s) => s.setHomeTab)
+  const setScreen = useEditor((s) => s.setScreen)
   const [date] = useState(today)
 
   return (
@@ -70,10 +71,10 @@ export function HomeTabView() {
           <IconMagic />
           <span>圖片美化</span>
         </PickPhotoButton>
-        <Soon className="hero-tile" label="相機">
+        <button className="hero-tile" onClick={() => setScreen('camera')}>
           <IconCamera />
           <span>相機</span>
-        </Soon>
+        </button>
       </div>
 
       <div className="home-row">
@@ -81,14 +82,14 @@ export function HomeTabView() {
           <IconFace />
           <span>人像美容</span>
         </PickPhotoButton>
-        <Soon className="row-tile" label="拼圖">
+        <button className="row-tile" onClick={() => setScreen('collage')}>
           <IconCollage />
           <span>拼圖</span>
-        </Soon>
-        <Soon className="row-tile" label="證件照">
+        </button>
+        <PickPhotoButton className="row-tile" mode="portrait" tool="idphoto">
           <IconIdPhoto />
           <span>證件照</span>
-        </Soon>
+        </PickPhotoButton>
         <PickPhotoButton className="row-tile" mode="beautify" tool="auto">
           <IconMagic />
           <span>智慧優化</span>

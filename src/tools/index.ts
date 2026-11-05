@@ -13,6 +13,7 @@ import { eyesTool, teethTool } from './features/index.tsx'
 import { filterTool } from './filter/index.tsx'
 import { frameTool } from './frame/index.tsx'
 import { hairTool } from './hair/index.tsx'
+import { idPhotoTool } from './idphoto/index.tsx'
 import { liquifyTool } from './liquify/index.tsx'
 import { makeupTool } from './makeup/index.tsx'
 import { mosaicTool } from './mosaic/index.tsx'
@@ -46,3 +47,4 @@ registerTool(eyesTool)
 registerTool(teethTool)
 registerTool(hairTool)
 registerTool(oneTapTool)
+registerTool(idPhotoTool)
