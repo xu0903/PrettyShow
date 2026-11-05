@@ -55,7 +55,8 @@ export function createBrushOverlay<P>(cfg: BrushOverlayConfig<P>): ComponentType
     }
 
     const toSource = (p: Local) => {
-      const q = displayToSourcePoint(useEditor.getState().history.present, getTools(), p)
+      const { history, photo } = useEditor.getState()
+      const q = displayToSourcePoint(history.present, getTools(), p, { width: photo!.width, height: photo!.height })
       return [round4(q.x), round4(q.y)]
     }
 

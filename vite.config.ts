@@ -56,7 +56,17 @@ export default defineConfig({
             options: {
               cacheName: 'face-models',
               // 檔名有版本雜湊，舊版本的檔案留著也沒用
-              expiration: { maxEntries: 4 },
+              expiration: { maxEntries: 6 },
+            },
+          },
+          {
+            // 文字工具的網路字型：第一次用到才下載，之後離線也能用
+            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'web-fonts',
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },
         ],

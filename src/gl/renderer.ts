@@ -140,8 +140,9 @@ export class Renderer {
       gl.bindTexture(gl.TEXTURE_2D, inputTex)
       program.set('u_texel', [1 / inputSize.width, 1 / inputSize.height])
       program.set('u_outSize', [outSize.width, outSize.height])
-      for (const [name, value] of Object.entries(pass.uniforms ?? {})) program.set(name, value)
-      for (const [name, src] of Object.entries(pass.textures ?? {})) {
+      for (const [name, value] of Object.entries({ ...pass.uniforms, ...pass.uniformsFor?.(inputSize) })) program.set(name, value)
+      const textures = { ...pass.textures, ...pass.texturesFor?.(inputSize) }
+      for (const [name, src] of Object.entries(textures)) {
         const unit = program.samplerUnits.get(name)
         if (unit === undefined) continue
         gl.activeTexture(gl.TEXTURE0 + unit)

@@ -12,6 +12,7 @@ import {
   flipVertical,
   FULL_RECT,
   isIdentityCrop,
+  croppedSize,
   croppedToSource,
   rotatedSize,
   rotateLeft,
@@ -45,7 +46,10 @@ export const cropTool = defineTool<CropParams>({
   // 裁切時顯示整張照片（旋轉、翻轉照樣套用），才能拖動裁切框
   viewParams: (p) => ({ ...p, rect: FULL_RECT }),
   Overlay: CropOverlay,
-  mapToSource: croppedToSource,
+  mapToSource: (p, pt) => croppedToSource(p, pt),
+  mapSize: (p, size) => croppedSize(size, p),
+  geometryOrder: ORDER.geometry,
+  isolateView: true,
 
   Panel: function CropPanel({ params, onCommit }) {
     // 比例計算用原圖尺寸（和預覽圖的比例相同）

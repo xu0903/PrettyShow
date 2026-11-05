@@ -5,11 +5,8 @@ import type { ReactNode } from 'react'
 import type { EditorMode } from '../core/tool.ts'
 import {
   IconBlur,
-  IconFrame,
   IconHeight,
   IconRecipe,
-  IconSticker,
-  IconText,
 } from '../ui/icons.tsx'
 
 export interface UpcomingTool {
@@ -22,9 +19,6 @@ export interface UpcomingTool {
 export const UPCOMING: UpcomingTool[] = [
   // 圖片美化
   { id: 'recipe', label: '美圖配方', icon: <IconRecipe />, placement: { beautify: 10 } },
-  { id: 'text', label: '文字', icon: <IconText />, placement: { beautify: 60 } },
-  { id: 'sticker', label: '貼紙', icon: <IconSticker />, placement: { beautify: 70 } },
-  { id: 'frame', label: '邊框', icon: <IconFrame />, placement: { beautify: 80 } },
   { id: 'bokeh', label: '背景虛化', icon: <IconBlur />, placement: { beautify: 120 } },
   // 人像美容
   { id: 'beauty-recipe', label: '美容配方', icon: <IconRecipe />, placement: { portrait: 10 } },

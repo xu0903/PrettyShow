@@ -36,15 +36,16 @@ function Soon({ className, label, children }: { className: string; label: string
   )
 }
 
-const SMALL: { label: string; icon: ReactNode }[] = [
+/** 小工具；有 tool 的已經做好，選好照片就直接打開那個工具 */
+const SMALL: { label: string; icon: ReactNode; tool?: string }[] = [
   { label: '背景虛化', icon: <IconBlur /> },
   { label: '摳圖', icon: <IconCutout /> },
   { label: '消除路人', icon: <IconEraser /> },
   { label: '畫質修復', icon: <IconHD /> },
   { label: 'AI 創意', icon: <IconAI /> },
   { label: '形象照', icon: <IconPortrait /> },
-  { label: '文字', icon: <IconText /> },
-  { label: '邊框', icon: <IconFrame /> },
+  { label: '文字', icon: <IconText />, tool: 'text' },
+  { label: '邊框', icon: <IconFrame />, tool: 'frame' },
 ]
 
 // 首頁：大按鈕「圖片美化」「相機」、常用功能、更多小工具、最近修過的照片
@@ -95,12 +96,19 @@ export function HomeTabView() {
       </div>
 
       <div className="home-grid">
-        {SMALL.map((s) => (
-          <Soon key={s.label} className="grid-tile" label={s.label}>
-            {s.icon}
-            <span>{s.label}</span>
-          </Soon>
-        ))}
+        {SMALL.map((s) =>
+          s.tool ? (
+            <PickPhotoButton key={s.label} className="grid-tile" mode="beautify" tool={s.tool}>
+              {s.icon}
+              <span>{s.label}</span>
+            </PickPhotoButton>
+          ) : (
+            <Soon key={s.label} className="grid-tile" label={s.label}>
+              {s.icon}
+              <span>{s.label}</span>
+            </Soon>
+          ),
+        )}
       </div>
 
       {gallery.length > 0 && (

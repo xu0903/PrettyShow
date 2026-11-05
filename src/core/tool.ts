@@ -8,6 +8,7 @@
 import type { ComponentType, ReactNode } from 'react'
 import type { RenderPass } from '../gl/pass.ts'
 import type { LoadedPhoto } from '../image/load.ts'
+import type { Size } from '../gl/limits.ts'
 
 /** 兩個編輯器：圖片美化（調色、濾鏡、裁切…）和人像美容（美膚、臉型、美妝…） */
 export type EditorMode = 'beautify' | 'portrait'
@@ -48,9 +49,12 @@ export const ORDER = {
   reshape: 55, // 臉型：瘦臉、大眼、手動推臉（在磨皮之後，臉部遮罩才對得上）
   paint: 60, // 馬賽克、塗鴉筆
   geometry: 100, // 裁切、旋轉、翻轉
+  stretch: 110, // 增高（拉長畫面的一段）
   color: 200, // 亮度、對比、色溫…
   filter: 300, // LUT 濾鏡
   detail: 400, // 銳化、暈影
+  frame: 450, // 邊框（會讓畫面變大）
+  overlay: 500, // 文字、貼紙（疊在最上面，座標是最後輸出的畫面）
 } as const
 
 export interface ToolPanelProps<P> {
@@ -98,10 +102,22 @@ export interface EditTool<P> {
   /** 有操作層時仍然允許「兩指」縮放、拖動照片（筆刷類工具：一指畫、兩指移動） */
   overlayZoom?: boolean
   /**
+   * 這個工具打開時，暫時不畫排在它後面、會改變畫面大小或疊在上面的步驟（邊框、文字…）。
+   * 裁切、增高要看到「自己處理完」的畫面，操作層的位置才對得上。
+   */
+  isolateView?: boolean
+  /**
    * 會改變畫面幾何的工具（裁切、旋轉）提供：畫面上看到的點 → 這個工具處理之前的點。
    * 筆刷工具用它把手指位置換算回原圖座標。
    */
-  mapToSource?: (params: P, p: Point) => Point
+  mapToSource?: (params: P, p: Point, inputSize: Size) => Point
+  /** 會改變畫面大小的幾何工具：輸入尺寸 → 輸出尺寸（換算座標時要知道每一層的大小） */
+  mapSize?: (params: P, inputSize: Size) => Size
+  /**
+   * 會改變畫面幾何的工具在管線中的順序（ORDER.xxx）。
+   * 把畫面上的點換算回原圖時，要依這個順序由後往前還原。
+   */
+  geometryOrder?: number
 }
 
 /** 建立工具時用這個函式包起來，TypeScript 才能檢查 params 的型別 */

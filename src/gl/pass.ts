@@ -50,6 +50,13 @@ export interface RenderPass {
   uniforms?: Record<string, UniformValue>
   textures?: Record<string, Texture3DSource | Texture2DSource>
   /**
+   * 要依「這一步的輸入尺寸」才能產生的貼圖（例如文字：要知道最後輸出多大，字才不會被拉長）。
+   * renderer 跑到這一步時才呼叫；請自己快取，同樣的尺寸回傳同一個 key。
+   */
+  texturesFor?: (input: Size) => Record<string, Texture2DSource>
+  /** 同上，要依輸入尺寸才算得出來的 uniform（例如邊框裡照片的位置） */
+  uniformsFor?: (input: Size) => Record<string, UniformValue>
+  /**
    * 讀取前面某一步的輸出：{ sampler 名稱: 那一步的 id }。
    * 例如磨皮最後一步要同時看到模糊後和模糊前的畫面。
    */

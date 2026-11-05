@@ -1,0 +1,138 @@
+/* ---- 文字、貼紙的操作層 ---- */
+.layers-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  touch-action: none;
+}
+
+/* 物件的範圍：沒選到時看不到框，但一樣可以點 */
+.layer-box {
+  position: absolute;
+  border: 1.5px dashed transparent;
+  border-radius: 4px;
+  touch-action: none;
+}
+
+.layer-box.is-selected {
+  border-color: rgb(255 255 255 / 0.9);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+}
+
+/* 角落的把手：看到的圓小，可以按的範圍大 */
+.layer-handle {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  touch-action: none;
+}
+
+.layer-handle::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
+.layer-del {
+  left: -13px;
+  top: -13px;
+  font-size: 18px;
+}
+
+.layer-rot {
+  right: -13px;
+  bottom: -13px;
+  background: #fff;
+  color: #222;
+}
+
+/* ---- 面板 ---- */
+.layers-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 8px;
+}
+
+.layers-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.layers-add {
+  padding: 9px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+}
+
+.text-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px;
+}
+
+.text-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  font: inherit;
+  /* 16px 以上 iOS 才不會自動放大畫面 */
+  font-size: 16px;
+  color: var(--text);
+  background: var(--surface-2);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.text-input-row button {
+  flex: none;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: var(--surface-2);
+}
+
+/* 貼紙：一格一個 emoji */
+.sticker-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, 46px);
+  grid-auto-columns: 46px;
+  gap: 4px;
+  padding: 0 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.sticker-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.sticker-btn {
+  font-size: 30px;
+  line-height: 46px;
+  border-radius: 10px;
+}
+
+.sticker-btn:active {
+  background: var(--surface-2);
+}

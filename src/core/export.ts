@@ -3,9 +3,10 @@
 
 import { getMaxTextureSize } from '../gl/capabilities.ts'
 import { Renderer } from '../gl/renderer.ts'
-import { decodeForExport, releaseCanvas, type LoadedPhoto } from '../image/load.ts'
+import { IOS_MAX_CANVAS_PIXELS } from '../gl/limits.ts'
+import { decodeForExport, releaseCanvas, resizeTo, type LoadedPhoto } from '../image/load.ts'
 import type { EditState } from './editStack.ts'
-import { buildPasses, prepareTools } from './pipeline.ts'
+import { buildPasses, outputSizeOf, prepareTools } from './pipeline.ts'
 import { getTools } from './registry.ts'
 
 export interface ExportResult {
@@ -41,8 +42,18 @@ export async function exportPhoto(photo: LoadedPhoto, state: EditState): Promise
   // 濾鏡之類的資源要先準備好；匯出不看目前打開的工具，裁切一定會套用
   await prepareTools(state, tools, { photo })
 
-  const { canvas: full } = await decodeForExport(photo.file, getMaxTextureSize())
-  const sourceWidth = full.width
+  const maxTex = getMaxTextureSize()
+  let { canvas: full } = await decodeForExport(photo.file, maxTex)
+  // 銳化半徑這類以像素為單位的效果，要跟著放大才會和預覽看起來一樣
+  const passesFor = (c: HTMLCanvasElement) => buildPasses(state, tools, { pixelScale: c.width / photo.preview.width, photo })
+  // 邊框會讓整張圖變大：最後的尺寸超過 iOS 的上限時，把原圖再縮小一點
+  const final = outputSizeOf(passesFor(full), full)
+  const k = Math.min(1, Math.sqrt(IOS_MAX_CANVAS_PIXELS / (final.width * final.height)), maxTex / Math.max(final.width, final.height))
+  if (k < 1) {
+    const smaller = resizeTo(full, { width: Math.floor(full.width * k), height: Math.floor(full.height * k) })
+    releaseCanvas(full)
+    full = smaller
+  }
   const out = document.createElement('canvas')
   let renderer: Renderer | null = null
   try {
@@ -51,10 +62,9 @@ export async function exportPhoto(photo: LoadedPhoto, state: EditState): Promise
       highPrecision: full.width * full.height <= HIGH_PRECISION_MAX_PIXELS,
     })
     renderer.setSource(full)
-    // 已經上傳到 GPU 了，CPU 這份先釋放
+    const passes = passesFor(full)
+    // 已經上傳到 GPU 了，CPU 這份先釋放（尺寸要在釋放前記下來）
     releaseCanvas(full)
-    // 銳化半徑這類以像素為單位的效果，要跟著放大才會和預覽看起來一樣
-    const passes = buildPasses(state, tools, { pixelScale: sourceWidth / photo.preview.width, photo })
     const size = renderer.render(passes)
     // GPU 被系統回收的話畫面是空的，不要輸出一張黑圖
     if (renderer.isLost) throw new Error('記憶體不足，匯出失敗，請關掉其他 App 再試一次')
