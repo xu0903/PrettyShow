@@ -1,0 +1,41 @@
+/* 增高：要拉長的範圍 */
+.taller-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgb(255 47 85 / 0.12);
+  pointer-events: none;
+}
+
+/* 可以拖的線：看到的線很細，可以按的範圍有 36px 高 */
+.taller-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 36px;
+  margin-top: -18px;
+  touch-action: none;
+  cursor: ns-resize;
+}
+
+.taller-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 2px dashed #fff;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.6));
+}
+
+.taller-line span {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  translate: 0 -50%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #fff;
+  background: var(--accent);
+}

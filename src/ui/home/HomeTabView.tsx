@@ -38,7 +38,7 @@ function Soon({ className, label, children }: { className: string; label: string
 
 /** 小工具；有 tool 的已經做好，選好照片就直接打開那個工具 */
 const SMALL: { label: string; icon: ReactNode; tool?: string }[] = [
-  { label: '背景虛化', icon: <IconBlur /> },
+  { label: '背景虛化', icon: <IconBlur />, tool: 'bokeh' },
   { label: '摳圖', icon: <IconCutout /> },
   { label: '消除路人', icon: <IconEraser /> },
   { label: '畫質修復', icon: <IconHD /> },

@@ -5,6 +5,7 @@ import { acneTool } from './acne/index.tsx'
 import { adjustTool } from './adjust/index.tsx'
 import { autoTool } from './auto/index.tsx'
 import { beautyTool } from './beauty/index.tsx'
+import { bokehTool } from './bokeh/index.tsx'
 import { cropTool } from './crop/index.tsx'
 import { doodleTool } from './doodle/index.tsx'
 import { eraserTool } from './eraser/index.tsx'
@@ -16,24 +17,30 @@ import { liquifyTool } from './liquify/index.tsx'
 import { makeupTool } from './makeup/index.tsx'
 import { mosaicTool } from './mosaic/index.tsx'
 import { oneTapTool } from './onetap/index.tsx'
+import { beautyRecipeTool, recipeTool } from './recipe/index.tsx'
 import { reshapeTool } from './reshape/index.tsx'
 import { stickerTool } from './sticker/index.tsx'
+import { tallerTool } from './taller/index.tsx'
 import { textTool } from './text/index.tsx'
 
 registerTool(adjustTool)
 registerTool(autoTool)
 registerTool(beautyTool)
+registerTool(bokehTool)
 registerTool(filterTool)
 registerTool(cropTool)
 registerTool(frameTool)
 registerTool(stickerTool)
 registerTool(textTool)
+registerTool(recipeTool)
+registerTool(beautyRecipeTool)
 registerTool(mosaicTool)
 registerTool(doodleTool)
 registerTool(acneTool)
 registerTool(eraserTool)
 registerTool(reshapeTool)
 registerTool(liquifyTool)
+registerTool(tallerTool)
 registerTool(makeupTool)
 registerTool(eyesTool)
 registerTool(teethTool)

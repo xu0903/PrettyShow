@@ -86,3 +86,15 @@
   font-size: 12px;
   color: var(--text-dim);
 }
+
+/* 背景虛化（圓形）：清楚範圍的中心 */
+.bokeh-ring {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1.5px rgb(0 0 0 / 0.45), inset 0 0 0 1.5px rgb(0 0 0 / 0.25);
+  pointer-events: none;
+}

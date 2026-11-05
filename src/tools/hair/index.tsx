@@ -9,7 +9,7 @@ import { colorName, type NamedColor } from '../../ui/colors.ts'
 import { Slider } from '../../ui/Slider.tsx'
 import { hexToRgb } from '../makeup/regions.ts'
 import { hairFragment } from '../makeup/shaders.ts'
-import { getHair, segmentHair } from './segment.ts'
+import { getSegment, HAIR_MODEL, segment } from '../segment/segmenter.ts'
 import '../beauty/beauty.css'
 import '../brush/brush.css'
 
@@ -41,11 +41,11 @@ export const hairTool = defineTool<HairParams>({
   isIdentity: (p) => !p.amount,
 
   prepare: async (_p, ctx) => {
-    if (ctx.photo) await segmentHair(ctx.photo.preview)
+    if (ctx.photo) await segment(HAIR_MODEL, ctx.photo.preview)
   },
 
   steps: (p, ctx) => {
-    const hair = ctx.photo && getHair(ctx.photo.preview)
+    const hair = ctx.photo && getSegment(HAIR_MODEL, ctx.photo.preview)
     if (!hair?.mask) return []
     return [
       {
@@ -68,7 +68,7 @@ export const hairTool = defineTool<HairParams>({
     useEffect(() => {
       if (!preview) return
       const task = { alive: true }
-      segmentHair(preview)
+      segment(HAIR_MODEL, preview)
         .then((d) => task.alive && setFound({ preview, ok: !!d.mask }))
         .catch((e: unknown) => {
           console.warn('頭髮辨識失敗', e)
