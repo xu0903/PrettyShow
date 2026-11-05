@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# Cloudflare Worker 的本機資料（.dev.vars 可能含金鑰，絕對不能上傳）
+.wrangler
+.dev.vars
+worker/.dev.vars

@@ -4,8 +4,9 @@ import { MAX_DRAFTS } from '../../core/drafts.ts'
 import { useEditor } from '../../core/store.ts'
 import { APP_VERSION, BUILD_TIME } from '../../version.ts'
 import { isStandalone } from '../viewportFix.ts'
+import { AiSettings } from './AiSettings.tsx'
 
-// 「我」：App 圖示、圖庫用量、版本資訊
+// 「我」：App 圖示、AI 服務設定、圖庫用量、版本資訊
 export function MeTab() {
   const [icon, setIcon] = useState(getAppIcon)
   const count = useEditor((s) => s.gallery.length)
@@ -40,6 +41,8 @@ export function MeTab() {
           {standalone && <p>你現在是從主畫面打開的，請改用 Safari 打開網站再選。</p>}
         </div>
       </section>
+
+      <AiSettings />
 
       <section className="me-card">
         <h2 className="sheet-title">圖庫</h2>

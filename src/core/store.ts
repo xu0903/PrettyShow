@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 import { getMaxTextureSize } from '../gl/capabilities.ts'
 import { loadPhoto, releaseCanvas, type LoadedPhoto } from '../image/load.ts'
+import type { AiTask } from './ai.ts'
 import * as drafts from './drafts.ts'
 import type { DraftMeta } from './drafts.ts'
 import * as stack from './editStack.ts'
@@ -44,6 +45,9 @@ interface EditorState {
   /** 打開拼圖、相機、AI 這些獨立的畫面（回首頁用 goHome） */
   setScreen: (screen: Screen) => void
   goHome: () => void
+  /** AI 修圖畫面正在做哪一個功能 */
+  aiTask: AiTask | null
+  openAi: (task: AiTask) => void
   /** 選了新照片：建立草稿並打開編輯器；指定 toolId 就直接打開那個工具（首頁的捷徑） */
   openPhoto: (file: File, mode: EditorMode, toolId?: string) => Promise<void>
   /** 從圖庫打開草稿 */
@@ -185,6 +189,8 @@ export const useEditor = create<EditorState>((set, get) => {
     setHomeTab: (homeTab) => set({ homeTab }),
     setScreen: (screen) => set({ screen }),
     goHome: () => set({ screen: 'home' }),
+    aiTask: null,
+    openAi: (aiTask) => set({ aiTask, screen: 'ai' }),
 
     openPhoto: async (file, mode, toolId) => {
       const token = beginOpen(mode)

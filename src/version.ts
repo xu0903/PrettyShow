@@ -4,6 +4,11 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.15.0': [
+    '新增「AI 修圖」：AI 換髮型（10 種）、消除路人、畫質修復、AI 創意（6 種畫風）、形象照',
+    'AI 要先到「我 → AI 服務」填入自己的 Worker 網址和通行碼（設定方法見說明）',
+    '結果可以按住比較原圖、儲存，或拿去繼續修圖',
+  ],
   '0.14.0': [
     '新增「相機」：即時預覽濾鏡和美顏，拍完直接進編輯器，效果還可以再調',
     '新增「拼圖」：2–9 張照片、多種版型，可調比例、間距、圓角、底色，點格子拖動調整照片位置',

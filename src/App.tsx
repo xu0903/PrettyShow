@@ -3,6 +3,7 @@ import './tools/index.ts' // 註冊所有編輯工具
 import { useEditor } from './core/store.ts'
 import './ui/layout.css'
 import './ui/overlays.css'
+import { AiScreen } from './ui/ai/AiScreen.tsx'
 import { Camera } from './ui/camera/Camera.tsx'
 import { Collage } from './ui/collage/Collage.tsx'
 import { Editor } from './ui/editor/Editor.tsx'
@@ -26,6 +27,7 @@ export default function App() {
       {screen === 'editor' && <Editor />}
       {screen === 'camera' && <Camera />}
       {screen === 'collage' && <Collage />}
+      {screen === 'ai' && <AiScreen />}
       <ExportHost />
       <Toast />
       <UpdateToast />

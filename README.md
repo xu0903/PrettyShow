@@ -46,3 +46,7 @@ push 到 `main` 後，GitHub Actions 會自動建置並部署到 GitHub Pages：
 - 共用模組在 `src/tools/brush/`：`createBrushOverlay` 處理手指塗抹、兩指縮放、座標換算；`BrushControls` 是畫筆／橡皮擦和大小。
 - 筆跡以「原圖座標」存在編輯參數裡（`Stroke`），渲染時才依解析度畫成遮罩（`strokeTexture`），匯出原圖一樣清楚。
 - 會改變幾何的工具（裁切）提供 `mapToSource`，筆刷就能把畫面上的位置換算回原圖。
+
+## AI 修圖（Cloudflare Worker）
+
+`worker/` 是 AI 修圖用的中繼站，API 金鑰只放在 Cloudflare。部署步驟見 [worker/README.md](worker/README.md)。

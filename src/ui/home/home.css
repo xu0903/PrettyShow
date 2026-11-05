@@ -393,6 +393,11 @@
   color: var(--text-dim);
 }
 
+.ai-setup {
+  margin-bottom: 12px;
+  border: 1px dashed var(--accent);
+}
+
 /* ---- 我 ---- */
 .me-card {
   margin-bottom: 12px;

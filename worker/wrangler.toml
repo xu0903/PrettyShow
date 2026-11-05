@@ -1,0 +1,18 @@
+# PrettyShow 的 AI 中繼站。部署：在 worker 資料夾執行 `npx wrangler deploy`
+name = "prettyshow-ai"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# 要用哪個 Gemini 圖片模型（改這一行再部署一次就能換）：
+#   gemini-3.1-flash-image       Nano Banana 2（建議，約 US$0.067／張）
+#   gemini-3.1-flash-lite-image  Nano Banana 2 Lite（約 US$0.034／張）
+#   gemini-3-pro-image           Nano Banana Pro（約 US$0.134／張，品質最好）
+#   gemini-nano-banana-2.1       Nano Banana 2.1（Google 目前推薦的新版）
+MODEL = "gemini-3.1-flash-image"
+# 允許呼叫的網站（逗號分隔）；開發用的 localhost、區網 IP 一律允許
+ALLOWED_ORIGINS = "https://xu0903.github.io"
+
+# 密碼類的設定不要寫在這裡，用指令設定（只存在 Cloudflare，不會上傳到 GitHub）：
+#   npx wrangler secret put GEMINI_API_KEY
+#   npx wrangler secret put ACCESS_CODE

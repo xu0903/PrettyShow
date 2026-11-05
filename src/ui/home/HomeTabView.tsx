@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import type { AiTask } from '../../core/ai.ts'
 import { appIconUrl, getAppIcon } from '../../core/appIcon.ts'
 import { useEditor } from '../../core/store.ts'
 import {
@@ -36,14 +37,14 @@ function Soon({ className, label, children }: { className: string; label: string
   )
 }
 
-/** 小工具；有 tool 的已經做好，選好照片就直接打開那個工具 */
-const SMALL: { label: string; icon: ReactNode; tool?: string }[] = [
+/** 小工具；有 tool 的選好照片就直接打開那個工具，有 ai 的打開 AI 修圖 */
+const SMALL: { label: string; icon: ReactNode; tool?: string; ai?: AiTask }[] = [
   { label: '背景虛化', icon: <IconBlur />, tool: 'bokeh' },
   { label: '摳圖', icon: <IconCutout /> },
-  { label: '消除路人', icon: <IconEraser /> },
-  { label: '畫質修復', icon: <IconHD /> },
-  { label: 'AI 創意', icon: <IconAI /> },
-  { label: '形象照', icon: <IconPortrait /> },
+  { label: '消除路人', icon: <IconEraser />, ai: 'remove' },
+  { label: '畫質修復', icon: <IconHD />, ai: 'enhance' },
+  { label: 'AI 創意', icon: <IconAI />, ai: 'style' },
+  { label: '形象照', icon: <IconPortrait />, ai: 'portrait' },
   { label: '文字', icon: <IconText />, tool: 'text' },
   { label: '邊框', icon: <IconFrame />, tool: 'frame' },
 ]
@@ -54,6 +55,7 @@ export function HomeTabView() {
   const openDraft = useEditor((s) => s.openDraft)
   const setTab = useEditor((s) => s.setHomeTab)
   const setScreen = useEditor((s) => s.setScreen)
+  const openAi = useEditor((s) => s.openAi)
   const [date] = useState(today)
 
   return (
@@ -98,7 +100,12 @@ export function HomeTabView() {
 
       <div className="home-grid">
         {SMALL.map((s) =>
-          s.tool ? (
+          s.ai ? (
+            <button key={s.label} className="grid-tile" onClick={() => openAi(s.ai!)}>
+              {s.icon}
+              <span>{s.label}</span>
+            </button>
+          ) : s.tool ? (
             <PickPhotoButton key={s.label} className="grid-tile" mode="beautify" tool={s.tool}>
               {s.icon}
               <span>{s.label}</span>
