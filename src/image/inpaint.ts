@@ -5,7 +5,8 @@
 import { create } from 'zustand'
 import type { InpaintRequest, InpaintResponse } from './inpaint.worker.ts'
 
-const MODEL_URL = new URL(`${import.meta.env.BASE_URL}models/migan_pipeline_v2.onnx`, location.href).href
+/** 模型的完整網址（用到時才算：測試環境沒有 location） */
+const modelUrl = () => new URL(`${import.meta.env.BASE_URL}models/migan_pipeline_v2.onnx`, location.href).href
 
 /** 給介面顯示的狀態：第一次要下載模型，之後只要運算 */
 export const useInpaintStatus = create<{ state: 'idle' | 'downloading' | 'running' | 'ready' | 'error' }>(() => ({
@@ -42,7 +43,7 @@ export async function inpaint(rgba: Uint8ClampedArray, mask: Uint8Array, w: numb
     const out = await new Promise<Uint8ClampedArray<ArrayBuffer>>((resolve, reject) => {
       waiting.set(id, { resolve, reject })
       // 複製一份再傳過去（傳過去的會被搬走，呼叫端可能還要用原本的）
-      const req: InpaintRequest = { id, modelUrl: MODEL_URL, rgba: rgba.slice(), mask: mask.slice(), w, h }
+      const req: InpaintRequest = { id, modelUrl: modelUrl(), rgba: rgba.slice(), mask: mask.slice(), w, h }
       getWorker().postMessage(req, [req.rgba.buffer, req.mask.buffer])
     })
     loaded = true
