@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { AI_TASKS, aiEdit, aiReady, prepareImage } from '../../core/ai.ts'
 import { useEditor } from '../../core/store.ts'
-import { decodeImage } from '../../image/load.ts'
+import { inpaint, useInpaintStatus } from '../../image/inpaint.ts'
+import { decodeImage, releaseCanvas, resizeTo } from '../../image/load.ts'
 import { startExport } from '../exportJob.ts'
 import { IconClose, IconCompare, IconPhoto } from '../icons.tsx'
 import { Slider } from '../Slider.tsx'
@@ -14,6 +15,47 @@ import './ai.css'
 interface Mark {
   pts: number[]
   r: number
+}
+
+/** 手機上消除時，照片的長邊（模型自己會在塗的範圍附近裁切、縮放，這裡只是限制記憶體） */
+const LOCAL_LONG = 2048
+
+/** 在手機上用 MI-GAN 消除塗到的地方（免費、不用網路） */
+async function localRemove(file: Blob, marks: Mark[]): Promise<Blob> {
+  const img = await decodeImage(file)
+  const s = Math.min(1, LOCAL_LONG / Math.max(img.naturalWidth, img.naturalHeight))
+  const c = resizeTo(Object.assign(img, { width: img.naturalWidth, height: img.naturalHeight }), {
+    width: Math.round(img.naturalWidth * s),
+    height: Math.round(img.naturalHeight * s),
+  })
+  const { width: w, height: h } = c
+  const ctx = c.getContext('2d', { willReadFrequently: true })!
+  const rgba = ctx.getImageData(0, 0, w, h).data
+  // 塗的地方畫成遮罩：255 保留、0 要補
+  const mc = document.createElement('canvas')
+  mc.width = w
+  mc.height = h
+  const m = mc.getContext('2d', { willReadFrequently: true })!
+  m.strokeStyle = m.fillStyle = '#fff'
+  m.lineCap = m.lineJoin = 'round'
+  for (const mk of marks) {
+    m.lineWidth = mk.r * 2 * w
+    m.beginPath()
+    for (let i = 0; i < mk.pts.length; i += 2) (i ? m.lineTo : m.moveTo).call(m, mk.pts[i] * w, mk.pts[i + 1] * h)
+    if (mk.pts.length === 2) m.arc(mk.pts[0] * w, mk.pts[1] * h, mk.r * w, 0, Math.PI * 2)
+    m.stroke()
+    m.fill()
+  }
+  const md = m.getImageData(0, 0, w, h).data
+  mc.width = mc.height = 0
+  const mask = new Uint8Array(w * h)
+  for (let i = 0; i < mask.length; i++) mask[i] = md[i * 4 + 3] > 8 ? 0 : 255
+  const out = await inpaint(rgba, mask, w, h)
+  ctx.putImageData(new ImageData(out, w, h), 0, 0)
+  const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/jpeg', 0.93))
+  releaseCanvas(c)
+  if (!blob) throw new Error('消除失敗')
+  return blob
 }
 
 export function AiScreen() {
@@ -36,6 +78,10 @@ export function AiScreen() {
   const imgRef = useRef<HTMLImageElement>(null)
   const drawing = useRef<{ id: number; mark: Mark } | null>(null)
   const ready = aiReady()
+  // 消除路人在手機上做，不用設定 AI 服務；其他功能要 Worker
+  const local = task.id === 'remove'
+  const usable = local || ready
+  const inpaintState = useInpaintStatus((s) => s.state)
 
   // 釋放圖片網址
   useEffect(() => () => void (src && URL.revokeObjectURL(src)), [src])
@@ -50,11 +96,16 @@ export function AiScreen() {
     setError(null)
   }
 
-  const generate = async () => {
+  const generate = async (useGemini = false) => {
     if (!file) return
     setBusy(true)
     setError(null)
     try {
+      if (local && !useGemini) {
+        const blob = await localRemove(file, marks)
+        setResult({ blob, url: URL.createObjectURL(blob) })
+        return
+      }
       const image = await prepareImage(file, (ctx, w, h) => {
         // 消除路人：把塗的地方用半透明紅色畫上去，AI 依紅色的範圍消除
         if (task.id !== 'remove') return
@@ -128,7 +179,7 @@ export function AiScreen() {
       </header>
 
       <main className="ai-main">
-        {!ready ? (
+        {!usable ? (
           <div className="page-empty">
             <p>還沒設定 AI 服務</p>
             <button
@@ -173,7 +224,13 @@ export function AiScreen() {
             {busy && (
               <div className="ai-busy">
                 <div className="export-spinner" />
-                <span>AI 處理中，大約 10–30 秒…</span>
+                <span>
+                  {local && inpaintState === 'downloading'
+                    ? '第一次使用，正在下載消除模型（約 40MB）…'
+                    : local && inpaintState === 'running'
+                      ? 'AI 消除中，幾秒鐘就好…'
+                      : 'AI 處理中，大約 10–30 秒…'}
+                </span>
               </div>
             )}
             {result && (
@@ -194,7 +251,7 @@ export function AiScreen() {
         )}
       </main>
 
-      {ready && src && (
+      {usable && src && (
         <div className="bottom ai-panel">
           {!result && (
             <>
@@ -225,6 +282,11 @@ export function AiScreen() {
                 <button className="sheet-close" onClick={() => setResult(null)}>
                   再試一次
                 </button>
+                {local && ready && (
+                  <button className="sheet-close" disabled={busy} onClick={() => void generate(true)}>
+                    用 Gemini
+                  </button>
+                )}
                 <button className="export-primary" onClick={() => void openPhoto(resultFile(), task.id === 'style' ? 'beautify' : 'portrait')}>
                   拿去修圖
                 </button>
@@ -240,13 +302,15 @@ export function AiScreen() {
                   <input type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
                   換照片
                 </label>
-                <button className="export-primary" disabled={busy || (task.id === 'remove' && marks.length === 0)} onClick={() => void generate()}>
+                <button className="export-primary" disabled={busy || (local && marks.length === 0)} onClick={() => void generate()}>
                   開始生成
                 </button>
               </>
             )}
           </div>
-          <p className="ai-cost">每次生成會用到你的 AI 額度（約 NT$1–4／張）</p>
+          <p className="ai-cost">
+            {local ? '在手機上處理，免費、不限次數；效果不夠好可以改用 Gemini' : '每次生成會用到你的 AI 額度（約 NT$1–4／張）'}
+          </p>
         </div>
       )}
     </div>

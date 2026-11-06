@@ -50,3 +50,11 @@ push 到 `main` 後，GitHub Actions 會自動建置並部署到 GitHub Pages：
 ## AI 修圖（Cloudflare Worker）
 
 `worker/` 是 AI 修圖用的中繼站，API 金鑰只放在 Cloudflare。部署步驟見 [worker/README.md](worker/README.md)。
+
+## 第三方模型與授權
+
+| 用途 | 模型 | 授權 |
+|---|---|---|
+| 臉部特徵點、頭髮分割、人像分割 | Google MediaPipe（face_landmarker、hair_segmenter、selfie_segmenter） | Apache-2.0 |
+| 消除筆、消除路人（手機上） | MI-GAN（Picsart AI Research），`public/models/migan_pipeline_v2.onnx` | MIT，見 `public/models/MI-GAN-LICENSE.txt` |
+| 執行 ONNX 模型 | onnxruntime-web | MIT |

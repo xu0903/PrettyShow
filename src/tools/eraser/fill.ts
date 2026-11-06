@@ -1,10 +1,14 @@
-// 消除筆的填補：把塗到的範圍當作「未知」，用周圍的顏色由外往內平滑地補起來（push-pull）。
+// 消除筆的填補。兩種：
+// - 快速版（push-pull）：把塗到的範圍當作「未知」，用周圍的顏色由外往內平滑地補起來，放開手指馬上有結果
+// - AI 版（MI-GAN，在手機上跑）：補出紋理和被擋住的線條，算好之後自動換上
+// 以下說明快速版的做法：
 // 做法：建立影像金字塔，每往上一層縮小一半，只平均已知的像素；
 // 再從最小的那層往回放大，把未知的地方用上一層的顏色填上。大範圍的洞也會補得很平順。
 // 在預覽圖上計算一次，匯出時放大使用（補出來的顏色本來就很平滑，放大不會失真）。
 
 import type { Texture2DSource } from '../../gl/pass.ts'
 import { boxBlur, flipRowsRGBA } from '../../image/raster.ts'
+import { inpaint } from '../../image/inpaint.ts'
 import { drawStrokes, type Stroke } from '../brush/strokes.ts'
 
 interface Level {
@@ -119,75 +123,128 @@ export function estimateNoise(rgb: Float32Array, known: Float32Array, w: number,
 const cache = new WeakMap<HTMLCanvasElement, { strokes: readonly Stroke[]; fill: Fill | null }>()
 let nextId = 0
 
-/** 已經算好的填補（還沒算或沒有要補的地方就是 undefined / null） */
+/** 已經算好的填補：AI 補好了就用 AI 的，還在算就先用快速的（還沒算或沒有要補的地方是 undefined / null） */
 export function getFill(preview: HTMLCanvasElement, strokes: readonly Stroke[]): Fill | null | undefined {
+  const ai = aiCache.get(preview)
+  if (ai && ai.strokes === strokes && ai.ready) return ai.ready
   const hit = cache.get(preview)
   return hit && hit.strokes === strokes ? hit.fill : undefined
 }
 
-/** 依筆跡算出填補（同一份筆跡只算一次） */
+/** 快速版：用周圍的顏色平滑地補（同一份筆跡只算一次） */
 export function computeFill(preview: HTMLCanvasElement, strokes: readonly Stroke[]): Fill | null {
-  const hit = getFill(preview, strokes)
-  if (hit !== undefined) return hit
+  const hit = cache.get(preview)
+  if (hit && hit.strokes === strokes) return hit.fill
   const fill = build(preview, strokes)
   cache.set(preview, { strokes, fill })
   return fill
 }
 
-function build(preview: HTMLCanvasElement, strokes: readonly Stroke[]): Fill | null {
+const aiCache = new WeakMap<HTMLCanvasElement, { strokes: readonly Stroke[]; job: Promise<Fill | null>; ready?: Fill | null }>()
+
+/** AI 版：手機上的 MI-GAN 模型補（會補出紋理和被擋住的線條）；失敗時呼叫端繼續用快速版 */
+export function computeAiFill(preview: HTMLCanvasElement, strokes: readonly Stroke[]): Promise<Fill | null> {
+  const hit = aiCache.get(preview)
+  if (hit && hit.strokes === strokes) return hit.job
+  const entry: { strokes: readonly Stroke[]; job: Promise<Fill | null>; ready?: Fill | null } = { strokes, job: Promise.resolve(null) }
+  entry.job = (async () => {
+    // AI 需要多一點周圍的畫面當參考
+    const r = region(preview, strokes, 1)
+    if (!r) return null
+    const n = r.bw * r.bh
+    // 模型要的遮罩：255 保留、0 要補；稍微往外擴一點，邊緣的殘影才會一起被補掉
+    const grow = r.alpha.slice()
+    boxBlur(grow, r.bw, r.bh, Math.max(1, r.avgR * 0.12))
+    const mask = new Uint8Array(n)
+    for (let i = 0; i < n; i++) mask[i] = grow[i] > 4 ? 0 : 255
+    const out = await inpaint(r.px, mask, r.bw, r.bh)
+    // 蓋上去的範圍：擴大後的遮罩再羽化
+    const alpha = Uint8Array.from(mask, (m) => 255 - m)
+    for (let i = 0; i < 2; i++) boxBlur(alpha, r.bw, r.bh, Math.max(1, r.avgR * 0.1))
+    for (let i = 0; i < n; i++) out[i * 4 + 3] = alpha[i]
+    const fill: Fill = {
+      texture: { kind: '2d', key: `eraser-ai#${nextId++}`, slot: 'eraser', width: r.bw, height: r.bh, channels: 4, data: flipRowsRGBA(out, r.bw, r.bh) },
+      box: r.box,
+      // AI 補出來的本身就有紋理，不用再加顆粒
+      noise: 0,
+    }
+    entry.ready = fill
+    return fill
+  })()
+  aiCache.set(preview, entry)
+  return entry.job
+}
+
+interface Region {
+  bx: number
+  by: number
+  bw: number
+  bh: number
+  /** 這一塊的像素（RGBA，上到下） */
+  px: Uint8ClampedArray
+  /** 這一塊的筆跡遮罩（0..255，上到下） */
+  alpha: Uint8Array
+  /** 筆刷平均半徑（px） */
+  avgR: number
+  /** GL 的 uv：x, y, 寬, 高 */
+  box: [number, number, number, number]
+}
+
+/** 找出塗到的範圍，往外多留一圈（margin 是範圍大小的倍數）當作補的參考 */
+function region(preview: HTMLCanvasElement, strokes: readonly Stroke[], margin: number): Region | null {
   const W = preview.width
   const H = preview.height
-
-  // 1. 筆跡畫成遮罩（上到下的順序，和 getImageData 一致）
   const mc = document.createElement('canvas')
   mc.width = W
   mc.height = H
   const mctx = mc.getContext('2d', { willReadFrequently: true })!
   drawStrokes(mctx, strokes)
-  const alpha = mctx.getImageData(0, 0, W, H).data
+  const all = mctx.getImageData(0, 0, W, H).data
   mc.width = mc.height = 0
 
-  // 2. 找出塗到的範圍，往外多留一圈當作補的參考
   let x0 = W
   let y0 = H
   let x1 = -1
   let y1 = -1
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++)
-      if (alpha[(y * W + x) * 4 + 3] > 8) {
+      if (all[(y * W + x) * 4 + 3] > 8) {
         if (x < x0) x0 = x
         if (x > x1) x1 = x
         if (y < y0) y0 = y
         if (y > y1) y1 = y
       }
   if (x1 < 0) return null
-  const margin = Math.max(16, Math.round(Math.max(x1 - x0, y1 - y0) * 0.4))
-  const bx = Math.max(0, x0 - margin)
-  const by = Math.max(0, y0 - margin)
-  const bw = Math.min(W, x1 + margin + 1) - bx
-  const bh = Math.min(H, y1 + margin + 1) - by
-
-  // 3. 取出這一塊的像素，塗到的地方當作未知
+  const m = Math.max(16, Math.round(Math.max(x1 - x0, y1 - y0) * margin))
+  const bx = Math.max(0, x0 - m)
+  const by = Math.max(0, y0 - m)
+  const bw = Math.min(W, x1 + m + 1) - bx
+  const bh = Math.min(H, y1 + m + 1) - by
   const px = preview.getContext('2d', { willReadFrequently: true })!.getImageData(bx, by, bw, bh).data
+  const alpha = new Uint8Array(bw * bh)
+  for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) alpha[y * bw + x] = all[((by + y) * W + bx + x) * 4 + 3]
+  const draws = strokes.filter((s) => !s.erase)
+  const avgR = (draws.reduce((sum, s) => sum + s.r, 0) / Math.max(1, draws.length)) * Math.max(W, H)
+  return { bx, by, bw, bh, px, alpha, avgR, box: [bx / W, 1 - (by + bh) / H, bw / W, bh / H] }
+}
+
+function build(preview: HTMLCanvasElement, strokes: readonly Stroke[]): Fill | null {
+  const r = region(preview, strokes, 0.4)
+  if (!r) return null
+  const { bw, bh, px } = r
   const n = bw * bh
   const rgb = new Float32Array(n * 3)
   const known = new Float32Array(n)
-  const mask = new Uint8Array(n)
-  for (let y = 0; y < bh; y++)
-    for (let x = 0; x < bw; x++) {
-      const i = y * bw + x
-      const m = alpha[((by + y) * W + bx + x) * 4 + 3]
-      mask[i] = m
-      known[i] = m > 8 ? 0 : 1
-      for (let k = 0; k < 3; k++) rgb[i * 3 + k] = px[i * 4 + k]
-    }
+  const mask = r.alpha.slice()
+  for (let i = 0; i < n; i++) {
+    known[i] = mask[i] > 8 ? 0 : 1
+    for (let k = 0; k < 3; k++) rgb[i * 3 + k] = px[i * 4 + k]
+  }
   const noise = estimateNoise(rgb, known, bw, bh)
   const filled = pushPull(rgb, known, bw, bh)
 
-  // 4. 邊緣羽化，蓋上去才不會看到一圈界線
-  const draws = strokes.filter((s) => !s.erase)
-  const avgR = (draws.reduce((sum, s) => sum + s.r, 0) / Math.max(1, draws.length)) * Math.max(W, H)
-  for (let i = 0; i < 2; i++) boxBlur(mask, bw, bh, Math.max(1, avgR * 0.15))
+  // 邊緣羽化，蓋上去才不會看到一圈界線
+  for (let i = 0; i < 2; i++) boxBlur(mask, bw, bh, Math.max(1, r.avgR * 0.15))
 
   const out = new Uint8ClampedArray(n * 4)
   for (let i = 0; i < n; i++) {
@@ -198,7 +255,7 @@ function build(preview: HTMLCanvasElement, strokes: readonly Stroke[]): Fill | n
   }
   return {
     texture: { kind: '2d', key: `eraser#${nextId++}`, slot: 'eraser', width: bw, height: bh, channels: 4, data: flipRowsRGBA(out, bw, bh) },
-    box: [bx / W, 1 - (by + bh) / H, bw / W, bh / H],
+    box: r.box,
     noise,
   }
 }

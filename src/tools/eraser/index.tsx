@@ -1,5 +1,5 @@
-// 消除筆：塗掉不想要的東西（電線、小雜物、痘疤…），放開手指後用周圍的顏色補起來。
-// 適合小範圍；大範圍、背景複雜的（例如整個路人）之後交給 AI 修圖。
+// 消除筆：塗掉不想要的東西（路人、電線、小雜物…），放開手指後補起來。
+// 先用周圍的顏色快速補上，手機上的 AI 模型（MI-GAN）算好後自動換成更自然的結果。
 
 import { defineTool, ORDER } from '../../core/tool.ts'
 import { FRAGMENT_HEADER } from '../../gl/pass.ts'
@@ -7,7 +7,8 @@ import { IconEraser } from '../../ui/icons.tsx'
 import { BrushControls } from '../brush/BrushControls.tsx'
 import { createBrushOverlay } from '../brush/BrushOverlay.tsx'
 import type { Stroke } from '../brush/strokes.ts'
-import { computeFill, getFill } from './fill.ts'
+import { useInpaintStatus } from '../../image/inpaint.ts'
+import { computeAiFill, computeFill, getFill } from './fill.ts'
 
 export interface EraserParams {
   strokes: Stroke[]
@@ -47,9 +48,11 @@ export const eraserTool = defineTool<EraserParams>({
   defaultParams: { strokes: [] },
   isIdentity: (p) => p.strokes.length === 0,
 
-  // 補的計算比較花時間，放在 prepare，不要卡住畫面更新
+  // 補的計算比較花時間，放在 prepare，不要卡住畫面更新：快速版馬上好，AI 版好了會再重畫一次
   prepare: async (p, ctx) => {
-    if (ctx.photo) computeFill(ctx.photo.preview, p.strokes)
+    if (!ctx.photo) return
+    computeFill(ctx.photo.preview, p.strokes)
+    await computeAiFill(ctx.photo.preview, p.strokes).catch((e: unknown) => console.warn('AI 消除失敗，改用一般補色', e))
   },
 
   steps: (p, ctx) => {
@@ -78,9 +81,18 @@ export const eraserTool = defineTool<EraserParams>({
   overlayZoom: true,
 
   Panel: function EraserPanel() {
+    const ai = useInpaintStatus((s) => s.state)
+    const hint =
+      ai === 'downloading'
+        ? '第一次使用，正在下載 AI 消除模型（約 40MB，之後離線也能用）…'
+        : ai === 'running'
+          ? 'AI 消除中，幾秒鐘就好…'
+          : ai === 'error'
+            ? 'AI 消除失敗，先用一般補色（可以再塗一次重試）'
+            : '塗滿要消除的人或東西，放開手指就會補上背景'
     return (
       <div className="brush-panel">
-        <p className="brush-hint">塗滿要消除的東西，放開手指就會用周圍的顏色補上；小範圍效果最好</p>
+        <p className="brush-hint">{hint}</p>
         <BrushControls />
       </div>
     )

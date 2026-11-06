@@ -48,15 +48,16 @@ export default defineConfig({
       workbox: {
         // 預先快取 App 本體和內建 LUT，讓 App 可以離線開啟
         globPatterns: ['**/*.{js,css,html,png,svg,cube,webmanifest}'],
-        // 美顏用的臉部辨識（wasm 約 13MB、模型 3.6MB）不預先下載，第一次用到時才抓，之後從快取讀
+        // AI 模型（臉部辨識、頭髮／人像分割、消除）和它們的 wasm 都很大，不預先下載：
+        // 第一次用到時才抓，之後從快取讀，離線也能用
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => /\.(wasm|task)$/.test(url.pathname),
+            urlPattern: ({ url }) => /\.(wasm|task|tflite|onnx)$/.test(url.pathname),
             handler: 'CacheFirst',
             options: {
               cacheName: 'face-models',
               // 檔名有版本雜湊，舊版本的檔案留著也沒用
-              expiration: { maxEntries: 6 },
+              expiration: { maxEntries: 12 },
             },
           },
           {
@@ -73,6 +74,8 @@ export default defineConfig({
       },
     }),
   ],
+  // 消除模型在 Web Worker 裡跑，Worker 也要能動態載入模組
+  worker: { format: 'es' },
   test: {
     environment: 'node',
   },

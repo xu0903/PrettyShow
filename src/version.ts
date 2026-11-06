@@ -4,6 +4,11 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.16.0': [
+    '消除筆、消除路人改用手機上的 AI（MI-GAN）：會補出紋理和被擋住的線條，免費、不限次數、離線也能用',
+    '第一次使用要下載約 40MB 的模型，建議連 Wi-Fi；之後就不用再下載',
+    '消除路人不用設定 AI 服務也能用；有設定的話，結果不滿意可以改用 Gemini',
+  ],
   '0.15.0': [
     '新增「AI 修圖」：AI 換髮型（10 種）、消除路人、畫質修復、AI 創意（6 種畫風）、形象照',
     'AI 要先到「我 → AI 服務」填入自己的 Worker 網址和通行碼（設定方法見說明）',
