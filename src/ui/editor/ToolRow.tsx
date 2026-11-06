@@ -4,7 +4,7 @@ import { UPCOMING } from '../../tools/upcoming.tsx'
 import { IconFace, IconMagic } from '../icons.tsx'
 import { comingSoon } from '../toast.ts'
 
-// 編輯器底部的工具列：可以左右滑，右邊固定一個切換到另一個編輯器的按鈕（去美容／去美化）
+// 編輯器底部的工具列：可以左右滑，右邊固定一個切換到另一個編輯器的按鈕（人像美容／圖片美化）
 export function ToolRow() {
   const mode = useEditor((s) => s.mode)
   const hasPhoto = useEditor((s) => s.photo !== null)
@@ -30,7 +30,7 @@ export function ToolRow() {
     })),
   ].sort((a, b) => a.order - b.order)
 
-  const other = mode === 'beautify' ? { label: '去美容', icon: <IconFace /> } : { label: '去美化', icon: <IconMagic /> }
+  const other = mode === 'beautify' ? { label: '人像美容', icon: <IconFace /> } : { label: '圖片美化', icon: <IconMagic /> }
 
   return (
     <nav className="tool-row">

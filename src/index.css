@@ -1,14 +1,23 @@
-/* ---- 設計變數 ---- */
+/* ---- 設計變數：奶茶杏色（淺色） ---- */
 :root {
-  --bg: #0b0b0d;
-  --surface: #141417;
-  --surface-2: #222227;
-  --line: #2c2c33;
-  --text: #f2f2f5;
-  --text-dim: #9a9aa6;
-  /* 美圖風格的紅色 */
-  --accent: #ff2f55;
-  --accent-2: #ff6b86;
+  --bg: #f3ebe1; /* 拿鐵米 */
+  --surface: #fffbf6; /* 奶泡白：卡片、面板 */
+  --surface-2: #ede2d5; /* 奶茶淺：選項底、輸入框 */
+  --line: #e3d5c5;
+  --text: #3a2a22; /* 濃縮咖啡 */
+  --text-dim: #8c7665;
+  /* 焦糖杏：主要按鈕、選到的項目 */
+  --accent: #df7a45;
+  --accent-2: #eea66e;
+  /* 淺底上的杏色小字（比 --accent 深，才看得清楚） */
+  --accent-ink: #b5562a;
+  --on-accent: #fff;
+  --danger: #c8452f;
+  --warn-bg: #fbe8d6;
+  --warn-text: #9a5524;
+  /* 照片區的深焙咖啡色：照片的顏色在深色上比較好判斷 */
+  --stage: #2b211c;
+  --shadow: 0 6px 20px rgb(90 58 36 / 0.12);
 
   --topbar-h: 48px;
   --toolbar-h: 66px;
@@ -20,7 +29,7 @@
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
 
-  color-scheme: dark;
+  color-scheme: light;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', sans-serif;
   color: var(--text);
   background: var(--bg);
@@ -76,4 +85,17 @@ button {
 button:disabled {
   opacity: 0.35;
   cursor: default;
+}
+
+/* 深色區域（照片區、相機）：裡面的文字、選項換成深底用的顏色 */
+.on-dark {
+  --text: #f4ece3;
+  --text-dim: #b5a394;
+  --surface: #382c25;
+  --surface-2: #45372f;
+  --line: #4d3e35;
+  --accent-ink: var(--accent-2);
+  --warn-bg: rgb(238 166 110 / 0.14);
+  --warn-text: #f5c9a0;
+  color: var(--text);
 }

@@ -1,4 +1,4 @@
-// 美圖配方／美容配方：把目前的修圖存起來，下一張照片按一下就套用同樣的效果
+// 修圖配方／美容配方：把目前的修圖存起來，下一張照片按一下就套用同樣的效果
 
 import { defineTool, type EditorMode } from '../../core/tool.ts'
 import { IconRecipe } from '../../ui/icons.tsx'
@@ -17,5 +17,5 @@ function makeRecipeTool(id: string, label: string, mode: EditorMode) {
   })
 }
 
-export const recipeTool = makeRecipeTool('recipe', '美圖配方', 'beautify')
+export const recipeTool = makeRecipeTool('recipe', '修圖配方', 'beautify')
 export const beautyRecipeTool = makeRecipeTool('beautyRecipe', '美容配方', 'portrait')

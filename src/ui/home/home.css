@@ -23,9 +23,9 @@
   padding: calc(var(--sat) + 14px) 16px 24px;
 }
 
-/* 首頁的紅色漸層背景（上面深紅，往下漸漸變黑） */
-.home-red {
-  background: linear-gradient(180deg, #b3132f 0%, #820d23 24%, #3a0812 50%, var(--bg) 76%);
+/* 首頁背景：上面淡淡的杏色，往下變回拿鐵米 */
+.home-latte {
+  background: linear-gradient(180deg, #f7dcc6 0%, var(--bg) 300px);
 }
 
 .tab-bar {
@@ -34,7 +34,7 @@
   height: calc(56px + var(--sab));
   padding-bottom: var(--sab);
   background: var(--surface);
-  border-top: 1px solid var(--line);
+  box-shadow: 0 -1px 0 var(--line);
 }
 
 .tab-btn {
@@ -49,52 +49,51 @@
 }
 
 .tab-btn[aria-pressed='true'] {
-  color: var(--text);
+  color: var(--accent-ink);
   font-weight: 600;
-}
-
-.tab-btn[aria-pressed='true'] svg {
-  color: var(--accent);
 }
 
 /* ---- 首頁 ---- */
 .home-head {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  margin: 6px 2px 18px;
 }
 
-.home-logo {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  box-shadow: 0 4px 14px rgb(0 0 0 / 0.3);
-}
-
-.home-brand {
-  font-size: 21px;
+/* 打招呼是首頁最大的字 */
+.home-hello {
+  margin: 0;
+  font-size: 30px;
   font-weight: 800;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
 }
 
 .home-date {
-  margin-top: 2px;
-  font-size: 12px;
-  opacity: 0.75;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.home-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  box-shadow: var(--shadow);
 }
 
 .soon-badge {
   position: absolute;
-  top: 7px;
-  right: 7px;
+  top: -4px;
+  right: 4px;
   padding: 1px 5px;
   border-radius: 6px;
   font-size: 9px;
   font-weight: 700;
   line-height: 1.5;
-  color: var(--accent);
-  background: #fff;
+  color: var(--on-accent);
+  background: var(--text-dim);
 }
 
 .soon-badge.is-inline {
@@ -102,65 +101,129 @@
   flex: none;
 }
 
-.home-hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
+/* 大卡片：左邊字，右邊疊著最近修過的照片 */
 .hero-tile {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 104px;
-  border-radius: 20px;
-  font-size: 16px;
-  font-weight: 700;
-  background: linear-gradient(150deg, #ff4d66, #d4203f);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
+  justify-content: space-between;
+  gap: 12px;
+  height: 148px;
+  padding: 0 22px 0 24px;
+  border-radius: 28px;
+  color: var(--on-accent);
+  background:
+    radial-gradient(circle at 85% 20%, rgb(255 255 255 / 0.28), transparent 45%),
+    linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 10px 28px rgb(223 122 69 / 0.35);
+  overflow: hidden;
   cursor: pointer;
 }
 
-.hero-tile svg {
+.hero-tile:active {
+  transform: scale(0.985);
+}
+
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hero-text b {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.hero-text small {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* 拍立得：白邊、下面留寬一點，兩張歪歪地疊著 */
+.hero-stack {
+  position: relative;
+  flex: none;
+  width: 96px;
+  height: 108px;
+}
+
+.hero-stack img,
+.hero-stack-empty {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  width: 76px;
+  height: 90px;
+  padding: 5px 5px 14px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: #fffbf6;
+  box-shadow: 0 6px 14px rgb(90 40 10 / 0.25);
+  rotate: 7deg;
+}
+
+.hero-stack img:first-child:not(:last-child) {
+  left: 2px;
+  rotate: -9deg;
+}
+
+.hero-stack-empty {
+  display: grid;
+  place-items: center;
+  color: var(--accent-2);
+}
+
+.hero-stack-empty svg {
   width: 30px;
   height: 30px;
 }
 
-.home-row {
+/* 人像美容、相機、拼圖 */
+.home-quick {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
-.row-tile {
-  position: relative;
+.quick-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 80px;
-  border-radius: 16px;
-  font-size: 12px;
+  height: 52px;
+  border-radius: 18px;
+  font-size: 14px;
   font-weight: 600;
-  background: rgb(255 255 255 / 0.14);
+  background: var(--surface);
+  box-shadow: var(--shadow);
   cursor: pointer;
 }
 
-.row-tile .soon-badge {
-  top: 4px;
-  right: 4px;
+.quick-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-ink);
+}
+
+/* 依用途分組的工具 */
+.home-group {
+  margin-top: 26px;
+}
+
+.home-group h2,
+.section-head h2 {
+  margin: 0 2px 12px;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .home-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px 6px;
-  margin-top: 24px;
+  gap: 6px;
 }
 
 .grid-tile {
@@ -168,17 +231,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 7px;
+  font-size: 12px;
+  cursor: pointer;
 }
 
-.grid-tile .soon-badge {
-  top: -6px;
-  right: 6px;
+.tool-badge {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  color: var(--accent-ink);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.grid-tile:active .tool-badge {
+  background: var(--surface-2);
 }
 
 .home-recent {
-  margin-top: 28px;
+  margin-top: 26px;
 }
 
 .section-head {
@@ -187,21 +261,16 @@
   align-items: baseline;
 }
 
-.section-head h2 {
-  margin: 0;
-  font-size: 16px;
-}
-
 .section-head button {
   font-size: 13px;
-  color: var(--text-dim);
+  color: var(--accent-ink);
 }
 
 .recent-row {
   display: flex;
-  gap: 8px;
-  margin: 10px -16px 0;
-  padding: 0 16px;
+  gap: 10px;
+  margin: 0 -16px;
+  padding: 0 16px 6px;
   overflow-x: auto;
   scrollbar-width: none;
   touch-action: pan-x;
@@ -213,9 +282,9 @@
 
 .recent-item {
   flex: none;
-  width: 92px;
-  height: 92px;
-  border-radius: 12px;
+  width: 88px;
+  height: 88px;
+  border-radius: 16px;
   overflow: hidden;
   background: var(--surface-2);
 }
@@ -281,13 +350,13 @@
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  margin: 0 -13px;
+  gap: 8px;
 }
 
 .gallery-item {
   position: relative;
   aspect-ratio: 1;
+  border-radius: 14px;
   overflow: hidden;
   background: var(--surface-2);
 }
@@ -303,6 +372,7 @@
   padding: 1px 5px;
   border-radius: 6px;
   font-size: 10px;
+  color: #fff;
   background: rgb(0 0 0 / 0.5);
 }
 
@@ -347,7 +417,8 @@
   padding: 8px 20px;
   border-radius: 999px;
   font-weight: 600;
-  background: #e5383b;
+  color: #fff;
+  background: var(--danger);
 }
 
 /* ---- AI 修圖 ---- */
@@ -362,9 +433,10 @@
   align-items: center;
   gap: 12px;
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 20px;
   text-align: left;
   background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .ai-icon {
@@ -373,8 +445,9 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(150deg, #ff4d66, #d4203f);
+  border-radius: 14px;
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
 .ai-text {
@@ -394,16 +467,24 @@
 }
 
 .ai-setup {
+  width: 100%;
   margin-bottom: 12px;
-  border: 1px dashed var(--accent);
+  border: 1.5px dashed var(--accent);
+}
+
+.ai-setup .soon-badge {
+  padding: 3px 10px;
+  font-size: 12px;
+  background: var(--accent);
 }
 
 /* ---- 我 ---- */
 .me-card {
   margin-bottom: 12px;
   padding: 2px 14px 14px;
-  border-radius: 16px;
+  border-radius: 20px;
   background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .me-line {

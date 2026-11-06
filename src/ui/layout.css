@@ -68,14 +68,18 @@
   border-radius: 999px;
   font-size: 16px;
   font-weight: 600;
+  color: var(--on-accent);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow);
 }
 
-/* 底部：工具列或打開中的工具 */
+/* 底部：浮起來的圓角面板（工具列、打開中的工具、AI 修圖和拼圖的操作） */
 .bottom {
   flex: none;
+  margin: 10px 10px calc(8px + var(--sab));
+  border-radius: 22px;
   background: var(--surface);
-  border-top: 1px solid var(--line);
+  box-shadow: var(--shadow);
 }
 
 /* 讀取中、錯誤訊息 */
@@ -90,7 +94,7 @@
 
 .viewport-error {
   margin: 0;
-  color: #ffb35f;
+  color: var(--warn-text);
   font-size: 14px;
   text-align: center;
 }
@@ -104,6 +108,7 @@
   padding: 4px 12px;
   border-radius: 999px;
   font-size: 12px;
+  color: #fff;
   background: rgb(0 0 0 / 0.6);
   pointer-events: none;
 }
@@ -133,7 +138,7 @@
 }
 
 .chip[aria-pressed='true'] {
-  color: #fff;
+  color: var(--on-accent);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 

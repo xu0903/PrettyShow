@@ -98,7 +98,7 @@ export function createBrushOverlay<P>(cfg: BrushOverlayConfig<P>): ComponentType
       const { zoom } = measure()
       const radius = (size / 2 / zoom) * dpr
       if (cur && showPath) {
-        ctx.strokeStyle = ctx.fillStyle = cfg.previewColor?.(cur.s) ?? (cur.s.erase ? 'rgb(255 255 255 / 0.4)' : 'rgb(255 47 85 / 0.5)')
+        ctx.strokeStyle = ctx.fillStyle = cfg.previewColor?.(cur.s) ?? (cur.s.erase ? 'rgb(255 255 255 / 0.4)' : 'rgb(223 122 69 / 0.55)')
         ctx.lineWidth = radius * 2
         ctx.lineCap = ctx.lineJoin = 'round'
         ctx.beginPath()

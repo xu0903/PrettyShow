@@ -34,8 +34,8 @@ export default defineConfig({
         lang: 'zh-Hant-TW',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0e0e11',
-        theme_color: '#0e0e11',
+        background_color: '#f3ebe1',
+        theme_color: '#f3ebe1',
         // 用相對路徑，部署在子路徑下也能正確運作
         start_url: './',
         scope: './',

@@ -13,7 +13,7 @@ export function Editor() {
   return (
     <div className="app">
       <EditorTopBar />
-      <main className="app-main">
+      <main className="app-main on-dark">
         <PhotoViewport />
         <CompareButton />
       </main>

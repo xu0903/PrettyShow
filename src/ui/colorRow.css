@@ -16,11 +16,11 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgb(255 255 255 / 0.25);
+  border: 2px solid rgb(0 0 0 / 0.08);
 }
 
 .swatch[aria-pressed='true'] {
-  outline: 2.5px solid #fff;
+  outline: 2.5px solid var(--text);
   outline-offset: 2px;
 }
 

@@ -26,6 +26,7 @@
   border-radius: 999px;
   font-size: 14px;
   font-weight: 600;
+  color: var(--on-accent);
   background: var(--accent);
 }
 
@@ -40,6 +41,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  color: #fff;
   background: rgb(0 0 0 / 0.5);
   touch-action: none;
 }
@@ -49,11 +51,31 @@
   height: 20px;
 }
 
-/* ---- 工具列：可以左右滑，右邊固定「去美容／去美化」 ---- */
+/* 照片放在一塊圓角的深色底上，四周留一點米色 */
+.app .app-main {
+  margin: 0 10px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--stage);
+}
+
+/* 編輯器的底部只是外框，工具列、工具面板自己是浮起來的圓角卡片 */
+.app .bottom {
+  margin: 0;
+  padding: 10px 10px calc(8px + var(--sab));
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* ---- 工具列：可以左右滑，右邊固定切換到另一個編輯器 ---- */
 .tool-row {
   display: flex;
-  height: calc(var(--toolbar-h) + var(--sab));
-  padding-bottom: var(--sab);
+  height: var(--toolbar-h);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .tool-row-scroll {
@@ -93,12 +115,19 @@
 
 .tool-switch {
   width: 72px;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
   border-left: 1px solid var(--line);
 }
 
 /* ---- 打開工具時：操作面板 + ✕／✓ ---- */
+.tool-sheet {
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
 .tool-panel {
   border-bottom: 1px solid var(--line);
 }
@@ -107,8 +136,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: calc(48px + var(--sab));
-  padding: 0 6px var(--sab);
+  height: 48px;
+  padding: 0 6px;
 }
 
 .tool-footer-title {

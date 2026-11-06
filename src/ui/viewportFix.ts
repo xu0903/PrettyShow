@@ -1,4 +1,4 @@
-// 修正 iOS 主畫面全螢幕模式（status bar = black-translucent）的底部問題：
+// 修正 iOS 主畫面全螢幕模式（status bar = black-translucent）的底部問題（目前用 default，見下方）：
 // 網頁可以畫的範圍比螢幕短了一截（剛好是狀態列的高度），最下面那一條只會顯示網頁底色，
 // 放在那裡的內容（例如工具列的文字）會被切掉。就算把 App 高度設成螢幕高度也畫不出來。
 //
@@ -18,6 +18,10 @@ export function installViewportFix(): void {
   if (!isStandalone()) return
   const root = document.documentElement
   root.dataset.standalone = ''
+  // 淺色主題改用 default 狀態列：網頁從狀態列下面開始，本來就不會被切到，不用修正
+  // （這時候「螢幕高度 − 可畫範圍」是狀態列的高度，不是落差，不能拿來扣）
+  const style = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.getAttribute('content')
+  if (style !== 'black-translucent') return
 
   const update = () => {
     // iOS 的 screen.width / height 不會隨著旋轉交換，要自己判斷方向

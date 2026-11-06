@@ -75,7 +75,7 @@ function drawCollage(ctx: CanvasRenderingContext2D, photos: HTMLCanvasElement[],
     ctx.drawImage(img, sx, sy, sw, sh, r.x, r.y, r.w, r.h)
     ctx.restore()
     if (i === selected) {
-      ctx.strokeStyle = '#ff2f55'
+      ctx.strokeStyle = '#df7a45'
       ctx.lineWidth = Math.max(2, W / 200)
       ctx.strokeRect(r.x, r.y, r.w, r.h)
     }

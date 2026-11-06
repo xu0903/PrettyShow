@@ -148,7 +148,7 @@ export function Camera() {
   }
 
   return (
-    <div className="camera">
+    <div className="camera on-dark">
       <div className="camera-stage" ref={stageRef}>
         <video ref={videoRef} playsInline muted className="camera-video" />
         {error && <p className="camera-error">{error}</p>}

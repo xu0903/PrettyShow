@@ -30,7 +30,7 @@
   flex-direction: column;
   gap: 6px;
   max-height: 46vh;
-  padding: 10px 0 calc(10px + var(--sab));
+  padding: 10px 0;
   overflow-y: auto;
 }
 

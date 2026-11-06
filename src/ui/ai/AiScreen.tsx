@@ -6,16 +6,40 @@ import { useEditor } from '../../core/store.ts'
 import { inpaint, useInpaintStatus } from '../../image/inpaint.ts'
 import { decodeImage, releaseCanvas, resizeTo } from '../../image/load.ts'
 import { startExport } from '../exportJob.ts'
-import { IconClose, IconCompare, IconPhoto } from '../icons.tsx'
+import { IconBrush, IconClose, IconCompare, IconEraser, IconPhoto, IconRedo, IconUndo } from '../icons.tsx'
 import { Slider } from '../Slider.tsx'
 import '../../tools/brush/brush.css'
 import './ai.css'
 
-/** 消除路人：塗的筆跡（照片 0..1 座標）和筆刷大小（照片寬度的比例） */
+/** 消除路人：塗的筆跡（照片 0..1 座標）和筆刷大小（照片寬度的比例）；erase 是橡皮擦，把塗過的地方擦掉 */
 interface Mark {
   pts: number[]
   r: number
+  erase?: boolean
 }
+
+/** 把筆跡依序畫到畫布上：塗的用 color，橡皮擦把已經塗的挖掉 */
+function paintMarks(ctx: CanvasRenderingContext2D, marks: Mark[], w: number, h: number, color: string) {
+  ctx.strokeStyle = ctx.fillStyle = color
+  ctx.lineCap = ctx.lineJoin = 'round'
+  for (const mk of marks) {
+    ctx.globalCompositeOperation = mk.erase ? 'destination-out' : 'source-over'
+    ctx.lineWidth = mk.r * 2 * w
+    ctx.beginPath()
+    if (mk.pts.length === 2) {
+      // 只點一下：畫一個圓點
+      ctx.arc(mk.pts[0] * w, mk.pts[1] * h, mk.r * w, 0, Math.PI * 2)
+      ctx.fill()
+      continue
+    }
+    for (let i = 0; i < mk.pts.length; i += 2) (i ? ctx.lineTo : ctx.moveTo).call(ctx, mk.pts[i] * w, mk.pts[i + 1] * h)
+    ctx.stroke()
+  }
+  ctx.globalCompositeOperation = 'source-over'
+}
+
+/** 有沒有真的塗到東西（全部被擦掉就不用生成） */
+const hasPaint = (marks: Mark[]) => marks.some((m) => !m.erase)
 
 /** 手機上消除時，照片的長邊（模型自己會在塗的範圍附近裁切、縮放，這裡只是限制記憶體） */
 const LOCAL_LONG = 2048
@@ -36,16 +60,7 @@ async function localRemove(file: Blob, marks: Mark[]): Promise<Blob> {
   mc.width = w
   mc.height = h
   const m = mc.getContext('2d', { willReadFrequently: true })!
-  m.strokeStyle = m.fillStyle = '#fff'
-  m.lineCap = m.lineJoin = 'round'
-  for (const mk of marks) {
-    m.lineWidth = mk.r * 2 * w
-    m.beginPath()
-    for (let i = 0; i < mk.pts.length; i += 2) (i ? m.lineTo : m.moveTo).call(m, mk.pts[i] * w, mk.pts[i + 1] * h)
-    if (mk.pts.length === 2) m.arc(mk.pts[0] * w, mk.pts[1] * h, mk.r * w, 0, Math.PI * 2)
-    m.stroke()
-    m.fill()
-  }
+  paintMarks(m, marks, w, h, '#fff')
   const md = m.getImageData(0, 0, w, h).data
   mc.width = mc.height = 0
   const mask = new Uint8Array(w * h)
@@ -71,8 +86,11 @@ export function AiScreen() {
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ blob: Blob; url: string } | null>(null)
   const [comparing, setComparing] = useState(false)
-  const [marks, setMarks] = useState<Mark[]>([])
+  // 塗抹紀錄：marks 是目前的筆跡，past／future 是復原、重做用的快照
+  const [strokes, setStrokes] = useState<{ marks: Mark[]; past: Mark[][]; future: Mark[][] }>({ marks: [], past: [], future: [] })
+  const marks = strokes.marks
   const [brush, setBrush] = useState(6) // 照片寬度的 %
+  const [erasing, setErasing] = useState(false)
   // 照片原始尺寸：筆跡的座標系統用它，粗細才不會因為長寬比被拉扁
   const [natural, setNatural] = useState({ w: 1, h: 1 })
   const imgRef = useRef<HTMLImageElement>(null)
@@ -92,7 +110,8 @@ export function AiScreen() {
     setFile(f)
     setSrc(URL.createObjectURL(f))
     setResult(null)
-    setMarks([])
+    setStrokes({ marks: [], past: [], future: [] })
+    setErasing(false)
     setError(null)
   }
 
@@ -108,16 +127,16 @@ export function AiScreen() {
       }
       const image = await prepareImage(file, (ctx, w, h) => {
         // 消除路人：把塗的地方用半透明紅色畫上去，AI 依紅色的範圍消除
+        // （先畫在另一張畫布上，橡皮擦才不會把照片也挖掉）
         if (task.id !== 'remove') return
-        ctx.strokeStyle = ctx.fillStyle = 'rgba(255, 0, 0, 0.55)'
-        ctx.lineCap = ctx.lineJoin = 'round'
-        for (const m of marks) {
-          ctx.lineWidth = m.r * 2 * w
-          ctx.beginPath()
-          for (let i = 0; i < m.pts.length; i += 2) (i ? ctx.lineTo : ctx.moveTo).call(ctx, m.pts[i] * w, m.pts[i + 1] * h)
-          if (m.pts.length === 2) ctx.arc(m.pts[0] * w, m.pts[1] * h, m.r * w, 0, Math.PI * 2)
-          ctx.stroke()
-        }
+        const mc = document.createElement('canvas')
+        mc.width = w
+        mc.height = h
+        paintMarks(mc.getContext('2d')!, marks, w, h, '#f00')
+        ctx.globalAlpha = 0.55
+        ctx.drawImage(mc, 0, 0)
+        ctx.globalAlpha = 1
+        mc.width = mc.height = 0
       })
       const blob = await aiEdit(task.id, option, image)
       setResult({ blob, url: URL.createObjectURL(blob) })
@@ -145,15 +164,22 @@ export function AiScreen() {
   const onDown = (e: PointerEvent) => {
     if (task.id !== 'remove' || result || busy) return
     e.currentTarget.setPointerCapture(e.pointerId)
-    drawing.current = { id: e.pointerId, mark: { pts: toPhoto(e), r: brush / 200 } }
-    setMarks([...marks, drawing.current.mark])
+    drawing.current = { id: e.pointerId, mark: { pts: toPhoto(e), r: brush / 200, ...(erasing ? { erase: true } : {}) } }
+    // 每一筆是一個復原步驟；畫新的一筆就不能再重做
+    setStrokes({ marks: [...marks, drawing.current.mark], past: [...strokes.past, marks], future: [] })
   }
   const onMove = (e: PointerEvent) => {
     const d = drawing.current
     if (!d || d.id !== e.pointerId) return
     d.mark = { ...d.mark, pts: [...d.mark.pts, ...toPhoto(e)] }
-    setMarks([...marks.slice(0, -1), d.mark])
+    setStrokes((s) => ({ ...s, marks: [...s.marks.slice(0, -1), d.mark] }))
   }
+  const undo = () =>
+    setStrokes((s) => (s.past.length ? { marks: s.past[s.past.length - 1], past: s.past.slice(0, -1), future: [s.marks, ...s.future] } : s))
+  const redo = () =>
+    setStrokes((s) => (s.future.length ? { marks: s.future[0], past: [...s.past, s.marks], future: s.future.slice(1) } : s))
+  // 清除也算一步，按復原可以拿回來
+  const clearMarks = () => setStrokes((s) => ({ marks: [], past: [...s.past, s.marks], future: [] }))
   const onUp = (e: PointerEvent) => {
     if (drawing.current?.id === e.pointerId) drawing.current = null
   }
@@ -178,7 +204,7 @@ export function AiScreen() {
         </div>
       </header>
 
-      <main className="ai-main">
+      <main className="ai-main on-dark">
         {!usable ? (
           <div className="page-empty">
             <p>還沒設定 AI 服務</p>
@@ -212,13 +238,22 @@ export function AiScreen() {
             />
             {task.id === 'remove' && !result && (
               <svg className="ai-marks" viewBox={`0 0 ${natural.w} ${natural.h}`} preserveAspectRatio="none">
-                {marks.map((m, i) => (
-                  <polyline
-                    key={i}
-                    points={Array.from({ length: m.pts.length / 2 }, (_, k) => `${m.pts[k * 2] * natural.w},${m.pts[k * 2 + 1] * natural.h}`).join(' ')}
-                    strokeWidth={m.r * 2 * natural.w}
-                  />
-                ))}
+                {/* 塗的畫白、擦的畫黑，當成遮罩蓋一層半透明的顏色：後面的筆會蓋過前面的 */}
+                <mask id="ai-marks-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={natural.w} height={natural.h}>
+                  {marks.map((m, i) => {
+                    // 只點一下的話重複一個點，圓頭線條才會畫出圓點
+                    const pts = m.pts.length === 2 ? [...m.pts, ...m.pts] : m.pts
+                    return (
+                      <polyline
+                        key={i}
+                        points={Array.from({ length: pts.length / 2 }, (_, k) => `${pts[k * 2] * natural.w},${pts[k * 2 + 1] * natural.h}`).join(' ')}
+                        stroke={m.erase ? '#000' : '#fff'}
+                        strokeWidth={m.r * 2 * natural.w}
+                      />
+                    )
+                  })}
+                </mask>
+                <rect className="ai-marks-fill" width={natural.w} height={natural.h} mask="url(#ai-marks-mask)" />
               </svg>
             )}
             {busy && (
@@ -266,11 +301,30 @@ export function AiScreen() {
               )}
               {task.id === 'remove' && (
                 <>
-                  <div className="brush-size">
-                    <span className="brush-size-label brush-row-label">筆刷</span>
-                    <Slider label="筆刷大小" value={brush} min={2} max={20} defaultValue={6} onChange={setBrush} onCommit={setBrush} />
+                  <div className="brush-controls">
+                    <div className="brush-modes">
+                      <button className="brush-mode" aria-pressed={!erasing} aria-label="畫筆" onClick={() => setErasing(false)}>
+                        <IconBrush />
+                      </button>
+                      <button className="brush-mode" aria-pressed={erasing} aria-label="橡皮擦" onClick={() => setErasing(true)}>
+                        <IconEraser />
+                      </button>
+                    </div>
+                    <div className="brush-size">
+                      <Slider label="筆刷大小" value={brush} min={2} max={20} defaultValue={6} onChange={setBrush} onCommit={setBrush} />
+                    </div>
+                    <div className="brush-modes">
+                      <button className="brush-mode" aria-label="復原塗抹" disabled={!strokes.past.length || busy} onClick={undo}>
+                        <IconUndo />
+                      </button>
+                      <button className="brush-mode" aria-label="重做塗抹" disabled={!strokes.future.length || busy} onClick={redo}>
+                        <IconRedo />
+                      </button>
+                    </div>
                   </div>
-                  <p className="brush-hint">用手指塗滿要消除的人或東西{marks.length ? '' : '，再按「開始生成」'}</p>
+                  <p className="brush-hint">
+                    {erasing ? '塗過頭的地方用橡皮擦擦掉' : `用手指塗滿要消除的人或東西${hasPaint(marks) ? '' : '，再按「開始生成」'}`}
+                  </p>
                 </>
               )}
             </>
@@ -294,7 +348,7 @@ export function AiScreen() {
             ) : (
               <>
                 {task.id === 'remove' && marks.length > 0 && (
-                  <button className="sheet-close" onClick={() => setMarks([])} disabled={busy}>
+                  <button className="sheet-close" onClick={clearMarks} disabled={busy}>
                     清除塗抹
                   </button>
                 )}
@@ -302,7 +356,7 @@ export function AiScreen() {
                   <input type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
                   換照片
                 </label>
-                <button className="export-primary" disabled={busy || (local && marks.length === 0)} onClick={() => void generate()}>
+                <button className="export-primary" disabled={busy || (local && !hasPaint(marks))} onClick={() => void generate()}>
                   開始生成
                 </button>
               </>
