@@ -8,6 +8,7 @@ import { decodeImage, releaseCanvas, resizeTo } from '../../image/load.ts'
 import { startExport } from '../exportJob.ts'
 import { IconBrush, IconClose, IconCompare, IconEraser, IconPhoto, IconRedo, IconUndo } from '../icons.tsx'
 import { Slider } from '../Slider.tsx'
+import { usePinchZoom } from '../usePinchZoom.ts'
 import '../../tools/brush/brush.css'
 import './ai.css'
 
@@ -89,17 +90,24 @@ export function AiScreen() {
   // 塗抹紀錄：marks 是目前的筆跡，past／future 是復原、重做用的快照
   const [strokes, setStrokes] = useState<{ marks: Mark[]; past: Mark[][]; future: Mark[][] }>({ marks: [], past: [], future: [] })
   const marks = strokes.marks
-  const [brush, setBrush] = useState(6) // 照片寬度的 %
+  const [brush, setBrush] = useState(6) // 沒放大時照片寬度的 %（放大後筆刷跟著變細，才能塗細節）
   const [erasing, setErasing] = useState(false)
   // 照片原始尺寸：筆跡的座標系統用它，粗細才不會因為長寬比被拉扁
   const [natural, setNatural] = useState({ w: 1, h: 1 })
+  const mainRef = useRef<HTMLElement>(null)
+  const photoRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
-  const drawing = useRef<{ id: number; mark: Mark } | null>(null)
+  // before：這一筆開始前的紀錄，第二根手指放下來（要縮放）時用來取消這一筆
+  const drawing = useRef<{ id: number; mark: Mark; before: typeof strokes } | null>(null)
+  const fingers = useRef(new Set<number>())
   const ready = aiReady()
   // 消除路人在手機上做，不用設定 AI 服務；其他功能要 Worker
   const local = task.id === 'remove'
   const usable = local || ready
   const inpaintState = useInpaintStatus((s) => s.state)
+  // 塗抹時單指留給筆刷、兩指縮放移動；看結果時單指也可以拖、雙擊放大
+  const painting = task.id === 'remove' && !result
+  usePinchZoom(mainRef, photoRef, src, usable && !!src, painting)
 
   // 釋放圖片網址
   useEffect(() => () => void (src && URL.revokeObjectURL(src)), [src])
@@ -161,12 +169,25 @@ export function AiScreen() {
     const r = imgRef.current!.getBoundingClientRect()
     return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]
   }
+  // 手指數量在整個照片區算（第二根手指可能放在照片外面）
+  const onFingerDown = (e: PointerEvent) => {
+    fingers.current.add(e.pointerId)
+    if (fingers.current.size > 1 && drawing.current) {
+      // 第二根手指：要縮放，不是要塗，把第一根手指剛開始的那一筆收回
+      setStrokes(drawing.current.before)
+      drawing.current = null
+    }
+  }
+  const onFingerUp = (e: PointerEvent) => void fingers.current.delete(e.pointerId)
   const onDown = (e: PointerEvent) => {
-    if (task.id !== 'remove' || result || busy) return
+    if (!painting || busy || fingers.current.size > 1) return
     e.currentTarget.setPointerCapture(e.pointerId)
-    drawing.current = { id: e.pointerId, mark: { pts: toPhoto(e), r: brush / 200, ...(erasing ? { erase: true } : {}) } }
+    // 筆刷大小以螢幕為準：放大幾倍，換算成照片上就細幾倍
+    const zoom = imgRef.current!.getBoundingClientRect().width / imgRef.current!.offsetWidth
+    const mark: Mark = { pts: toPhoto(e), r: brush / 200 / zoom, ...(erasing ? { erase: true } : {}) }
+    drawing.current = { id: e.pointerId, mark, before: strokes }
     // 每一筆是一個復原步驟；畫新的一筆就不能再重做
-    setStrokes({ marks: [...marks, drawing.current.mark], past: [...strokes.past, marks], future: [] })
+    setStrokes({ marks: [...marks, mark], past: [...strokes.past, marks], future: [] })
   }
   const onMove = (e: PointerEvent) => {
     const d = drawing.current
@@ -204,7 +225,13 @@ export function AiScreen() {
         </div>
       </header>
 
-      <main className="ai-main on-dark">
+      <main
+        className="ai-main on-dark"
+        ref={mainRef}
+        onPointerDownCapture={onFingerDown}
+        onPointerUpCapture={onFingerUp}
+        onPointerCancelCapture={onFingerUp}
+      >
         {!usable ? (
           <div className="page-empty">
             <p>還沒設定 AI 服務</p>
@@ -228,34 +255,37 @@ export function AiScreen() {
             </label>
           </div>
         ) : (
-          <div className="ai-photo" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-            <img
-              ref={imgRef}
-              src={shown!}
-              alt=""
-              draggable={false}
-              onLoad={(e) => !result && setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
-            />
-            {task.id === 'remove' && !result && (
-              <svg className="ai-marks" viewBox={`0 0 ${natural.w} ${natural.h}`} preserveAspectRatio="none">
-                {/* 塗的畫白、擦的畫黑，當成遮罩蓋一層半透明的顏色：後面的筆會蓋過前面的 */}
-                <mask id="ai-marks-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={natural.w} height={natural.h}>
-                  {marks.map((m, i) => {
-                    // 只點一下的話重複一個點，圓頭線條才會畫出圓點
-                    const pts = m.pts.length === 2 ? [...m.pts, ...m.pts] : m.pts
-                    return (
-                      <polyline
-                        key={i}
-                        points={Array.from({ length: pts.length / 2 }, (_, k) => `${pts[k * 2] * natural.w},${pts[k * 2 + 1] * natural.h}`).join(' ')}
-                        stroke={m.erase ? '#000' : '#fff'}
-                        strokeWidth={m.r * 2 * natural.w}
-                      />
-                    )
-                  })}
-                </mask>
-                <rect className="ai-marks-fill" width={natural.w} height={natural.h} mask="url(#ai-marks-mask)" />
-              </svg>
-            )}
+          <>
+            <div className="ai-photo" ref={photoRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+              <img
+                ref={imgRef}
+                src={shown!}
+                alt=""
+                draggable={false}
+                onLoad={(e) => !result && setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+              />
+              {task.id === 'remove' && !result && (
+                <svg className="ai-marks" viewBox={`0 0 ${natural.w} ${natural.h}`} preserveAspectRatio="none">
+                  {/* 塗的畫白、擦的畫黑，當成遮罩蓋一層半透明的顏色：後面的筆會蓋過前面的 */}
+                  <mask id="ai-marks-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={natural.w} height={natural.h}>
+                    {marks.map((m, i) => {
+                      // 只點一下的話重複一個點，圓頭線條才會畫出圓點
+                      const pts = m.pts.length === 2 ? [...m.pts, ...m.pts] : m.pts
+                      return (
+                        <polyline
+                          key={i}
+                          points={Array.from({ length: pts.length / 2 }, (_, k) => `${pts[k * 2] * natural.w},${pts[k * 2 + 1] * natural.h}`).join(' ')}
+                          stroke={m.erase ? '#000' : '#fff'}
+                          strokeWidth={m.r * 2 * natural.w}
+                        />
+                      )
+                    })}
+                  </mask>
+                  <rect className="ai-marks-fill" width={natural.w} height={natural.h} mask="url(#ai-marks-mask)" />
+                </svg>
+              )}
+            </div>
+            {/* 放在照片外面：照片放大時，轉圈圈和比較按鈕不會跟著變大 */}
             {busy && (
               <div className="ai-busy">
                 <div className="export-spinner" />
@@ -282,7 +312,7 @@ export function AiScreen() {
                 <IconCompare />
               </button>
             )}
-          </div>
+          </>
         )}
       </main>
 
@@ -323,7 +353,11 @@ export function AiScreen() {
                     </div>
                   </div>
                   <p className="brush-hint">
-                    {erasing ? '塗過頭的地方用橡皮擦擦掉' : `用手指塗滿要消除的人或東西${hasPaint(marks) ? '' : '，再按「開始生成」'}`}
+                    {erasing
+                      ? '塗過頭的地方用橡皮擦擦掉，兩指可以放大'
+                      : hasPaint(marks)
+                        ? '兩指放大可以塗得更細，塗好按「開始生成」'
+                        : '用手指塗滿要消除的人或東西，兩指可以放大'}
                   </p>
                 </>
               )}

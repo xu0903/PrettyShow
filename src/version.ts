@@ -4,6 +4,11 @@ export const APP_VERSION: string = __APP_VERSION__
 export const BUILD_TIME: string = __BUILD_TIME__
 
 export const CHANGELOG: Record<string, string[]> = {
+  '0.17.1': [
+    '消除路人可以兩指放大、移動照片，放大後筆刷跟著變細，小地方也塗得準',
+    '塗到一半放下第二根手指（要縮放）時，那一筆會自動取消，不會多塗',
+    '生成結果也可以放大看細節，雙擊放大／還原',
+  ],
   '0.17.0': [
     '換上新的「奶茶杏色」主題：淺色的介面，照片放在深咖啡色的底上，顏色比較好判斷',
     '首頁重新排版：上面是「修一張照片」大卡片，工具依「修圖／人像／AI」分組',

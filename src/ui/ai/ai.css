@@ -17,6 +17,9 @@
   padding: 12px;
   border-radius: 22px;
   background: var(--stage);
+  /* 照片放大時超出的部分裁掉；手勢全部自己處理 */
+  overflow: hidden;
+  touch-action: none;
 }
 
 /* 照片：等比例塞進可用空間；塗抹的筆跡疊在正上方 */
